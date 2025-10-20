@@ -1,7 +1,7 @@
 use crate::utils::{
+    input_utils::get_file_path_from_input,
     print_utils::{print_error_with_panic, print_fn_progress},
-    types::FilePathInfo,
-    types::ZipFolder,
+    types::{FilePathInfo, ZipFolder},
 };
 use colored::Colorize;
 use prompted::input;
@@ -11,12 +11,25 @@ use std::{
 };
 use zip_extensions::{zip_create_from_directory, zip_extract};
 
+// * --- Unzip
 /// Extract the zip file into a new folder
-pub fn extract_zip(file_path_info: &FilePathInfo) {
+pub fn extract_zip_wrapper() {
     println!("\n");
     let fn_name = "Extract zip";
     print_fn_progress(fn_name, "Extracting zip...");
 
+    let file_path_info = get_file_path_from_input();
+    file_path_info.print_info();
+
+    extract_zip(&file_path_info);
+
+    print_fn_progress(
+        fn_name,
+        "Zip extracted successfully!\n".green().to_string().as_str(),
+    );
+}
+
+fn extract_zip(file_path_info: &FilePathInfo) {
     let FilePathInfo { full_file_path, .. } = file_path_info;
 
     let ZipFolder {
@@ -39,10 +52,9 @@ pub fn extract_zip(file_path_info: &FilePathInfo) {
                     "{}",
                     "Output folder removed successfully, creating new one...".blue()
                 ),
-                Err(e) => print_error_with_panic(&format!(
-                    "Failed to remove the output folder: {}",
-                    e.to_string()
-                )),
+                Err(e) => {
+                    print_error_with_panic(&format!("Failed to remove the output folder: {}", e))
+                }
             }
         } else {
             println!("{}", "Operation cancelled".yellow());
@@ -57,7 +69,7 @@ pub fn extract_zip(file_path_info: &FilePathInfo) {
         print_error_with_panic(&format!(
             "Failed to create the output folder {}: {}",
             extracted_folder,
-            create_result.err().unwrap().to_string()
+            create_result.err().unwrap()
         ));
     }
 
@@ -67,21 +79,32 @@ pub fn extract_zip(file_path_info: &FilePathInfo) {
         &Path::new(&extracted_folder).to_path_buf(),
     ) {
         Ok(_) => println!("{}", "Zip extracted successfully".green()),
-        Err(e) => print_error_with_panic(&format!("Failed to extract the zip: {}", e.to_string())),
+        Err(e) => print_error_with_panic(&format!("Failed to extract the zip: {}", e)),
     }
-
-    print_fn_progress(
-        fn_name,
-        "Zip extracted successfully!\n".green().to_string().as_str(),
-    );
 }
 
+// * --- Rezip
 /// Rezip an extracted folder into a Word file
-pub fn rezip_folder(file_path_info: &FilePathInfo) {
+pub fn rezip_folder_wrapper() {
     println!("\n");
     let fn_name = "Rezip folder";
     print_fn_progress(fn_name, "Rezipping folder...");
 
+    let file_path_info = get_file_path_from_input();
+    file_path_info.print_info();
+
+    rezip_folder(&file_path_info);
+
+    print_fn_progress(
+        fn_name,
+        "Zip file created successfully!"
+            .green()
+            .to_string()
+            .as_str(),
+    );
+}
+
+fn rezip_folder(file_path_info: &FilePathInfo) {
     let FilePathInfo { full_file_path, .. } = file_path_info;
 
     let ZipFolder {
@@ -107,21 +130,13 @@ pub fn rezip_folder(file_path_info: &FilePathInfo) {
     ) {
         Ok(_) => println!("{}", "Zip file created successfully".green()),
         Err(e) => print_error_with_panic(&format!(
-            "Failed to create the zip file from folder {:?}: {}",
-            folder_path,
-            e.to_string()
+            "Failed to create the zip file from folder {}: {}",
+            extracted_folder, e
         )),
     }
-
-    print_fn_progress(
-        fn_name,
-        "Zip file created successfully!"
-            .green()
-            .to_string()
-            .as_str(),
-    );
 }
 
+// --- Utils
 fn get_output_folder(file_path_info: &FilePathInfo) -> ZipFolder {
     let FilePathInfo {
         file_name,

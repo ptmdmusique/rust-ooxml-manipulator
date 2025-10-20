@@ -2,6 +2,7 @@ use crate::utils::print_utils::print_error_with_panic;
 use colored::Colorize;
 use std::path::Path;
 
+// * ---
 /// Info about the file path
 pub struct FilePathInfo {
     /// Name of the file without extension
@@ -53,7 +54,7 @@ impl FilePathInfo {
     }
 }
 
-// ---
+// * ---
 
 pub struct ZipFolder {
     /// The root folder of the zip folder
