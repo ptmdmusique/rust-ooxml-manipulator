@@ -1,0 +1,7 @@
+[package]
+name = "final-project"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+prompted = "0.2.8"
