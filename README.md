@@ -23,8 +23,14 @@ The extraction is inspired by this [VSCode Extension](https://marketplace.visual
 
 - Navigate your favorite terminal to the project folder
 - Run `cargo run`
-- TODO
+- Choose one of the options
+- See below for instruction on individual options
+
+> Note that for file paths, use the path that is relative to the root of the project. For example, I have a `.local/test file.docx` at the root, my input path will be exactly the same, no quote needed
+
+TODO
 
 ## Issue and credit
 
-TODO
+- I asked ChatGPT to understand what the process is for a Word file extraction (spoiler alert, it's exactly the same as a .zip extraction)
+  TODO organize
