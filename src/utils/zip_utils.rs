@@ -1,4 +1,5 @@
 use crate::utils::{
+    files::get_output_folder,
     input_utils::get_file_path_from_input,
     print_utils::{print_error_with_panic, print_fn_progress},
     types::{FilePathInfo, ZipFolder},
@@ -21,7 +22,13 @@ pub fn extract_zip_wrapper() {
     let file_path_info = get_file_path_from_input();
     file_path_info.print_info();
 
-    extract_zip(&file_path_info);
+    let extract_result = extract_zip(&file_path_info);
+    if extract_result.is_err() {
+        print_error_with_panic(&format!(
+            "Failed to extract the zip: {}",
+            extract_result.err().unwrap()
+        ));
+    }
 
     print_fn_progress(
         fn_name,
@@ -29,7 +36,7 @@ pub fn extract_zip_wrapper() {
     );
 }
 
-fn extract_zip(file_path_info: &FilePathInfo) {
+pub fn extract_zip(file_path_info: &FilePathInfo) -> Result<(), &'static str> {
     let FilePathInfo { full_file_path, .. } = file_path_info;
 
     let ZipFolder {
@@ -58,7 +65,7 @@ fn extract_zip(file_path_info: &FilePathInfo) {
             }
         } else {
             println!("{}", "Operation cancelled".yellow());
-            return;
+            return Err("Operation cancelled");
         }
     }
 
@@ -78,7 +85,10 @@ fn extract_zip(file_path_info: &FilePathInfo) {
         &Path::new(full_file_path).to_path_buf(),
         &Path::new(&extracted_folder).to_path_buf(),
     ) {
-        Ok(_) => println!("{}", "Zip extracted successfully".green()),
+        Ok(_) => {
+            println!("{}", "Zip extracted successfully".green());
+            Ok(())
+        }
         Err(e) => print_error_with_panic(&format!("Failed to extract the zip: {}", e)),
     }
 }
@@ -133,22 +143,5 @@ fn rezip_folder(file_path_info: &FilePathInfo) {
             "Failed to create the zip file from folder {}: {}",
             extracted_folder, e
         )),
-    }
-}
-
-// --- Utils
-fn get_output_folder(file_path_info: &FilePathInfo) -> ZipFolder {
-    let FilePathInfo {
-        file_name,
-        file_path,
-        ..
-    } = file_path_info;
-
-    let output_folder = format!("{}/{}", file_path, file_name);
-    let zip_output_folder = format!("{}/{}", output_folder, "extracted");
-
-    ZipFolder {
-        root_folder: output_folder,
-        extracted_folder: zip_output_folder,
     }
 }
