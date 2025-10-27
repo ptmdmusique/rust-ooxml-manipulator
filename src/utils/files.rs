@@ -50,3 +50,7 @@ pub fn write_struct_to_json<T: Serialize>(data: &T, file_path: &str) -> Result<(
     let json = serde_json::to_string_pretty(data)?;
     fs::write(file_path, json)
 }
+
+pub fn get_file_size_in_kb_from_bytes(file_size: u64) -> u64 {
+    file_size / 1024
+}

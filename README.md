@@ -80,5 +80,12 @@ TODO
 
 ## Issue and credit
 
+### Credit
+
 - I asked ChatGPT to understand what the process is for a Word file extraction (spoiler alert, it's exactly the same as a .zip extraction)
   TODO organize
+
+### Issue
+
+- Function closure
+- Inheritance when serializing struct to JSON
