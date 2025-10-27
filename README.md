@@ -14,7 +14,11 @@ The major features of this program includes
 - summarize the structure: how many files, how many images, how many custom XML, etc
 - re-zip into the original Word file after the user has modified the file
 - allow adding/editing custom XMLs via a primitive GUI
-- validate OOXML structure - might not be include to ensure I meet the deadline
+
+**Stretched goals**: might not be include to ensure I meet the deadline
+
+- watch for the OOXML changes to update the actual Word file live
+- validate OOXML structure
 
 The extraction is inspired by this [VSCode Extension](https://marketplace.visualstudio.com/items?itemName=yuenm18.ooxml-viewer)
 
@@ -35,7 +39,33 @@ This section explains the individual features for more info
 
 ### Feature explanation
 
-1. Word file extraction
+1. Word file extraction and rezip
+
+A Word file is a zipped representation of different file types behind the scenes. It includes
+
+- the main OOXML in `document.xml` representing the actual UI shown
+- relationship files indicating the structural relationship between each UI elements in Word
+- images
+- custom metadata (`customXML`) made by the users (most likely coders) programmatically (found via `item1.xml`, `itemProps1.xml`, `item2.xml`, etc)
+- etc
+
+This feature help unzip the Word file into its mentioned internal structure and also re-zip it
+
+2. Summarize the structure
+
+This will analyze and summary the file info, including
+
+- basic file info: name, size, number of entries, other metadata
+- image count, size of each, etc
+- number of custom XMLs
+
+Note that this will extract the Word file if it's not found
+
+The result will be stored in `summary.json`
+
+3. Analyze customXML
+
+Analyze the `item*.xml` files to get the list of custom XML embedded in the Word file. The result will be stored in `customXML.json`
 
 ## How to run
 
