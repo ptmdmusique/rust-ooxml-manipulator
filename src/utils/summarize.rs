@@ -1,17 +1,14 @@
 use colored::Colorize;
-use prompted::input;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
+use crate::utils::ensure_ooxml_exist::ensure_ooxml_exist;
 use crate::utils::files::get_file_size_in_kb_from_bytes;
-use crate::utils::files::get_output_folder;
 use crate::utils::files::is_image_extension;
 use crate::utils::files::visit_dirs;
 use crate::utils::files::write_struct_to_json;
 use crate::utils::print_utils::print_error_with_panic;
 use crate::utils::types::FilePathInfo;
-use crate::utils::types::ZipFolder;
-use crate::utils::zip_utils::extract_zip;
 use crate::utils::{input_utils::get_file_path_from_input, print_utils::print_fn_progress};
 
 #[derive(Serialize, Deserialize)]
@@ -29,7 +26,7 @@ struct MediaInfo {
 }
 
 #[derive(Serialize, Deserialize)]
-struct SummarizeResult {
+struct SummarizeData {
     basic_info: FileInfo,
     file_count: u32,
     media_info: MediaInfo,
@@ -43,11 +40,8 @@ pub fn summarize_wrapper() {
 
     let file_path_info = get_file_path_from_input();
     file_path_info.print_info();
-    let ZipFolder {
-        extracted_folder, ..
-    } = get_output_folder(&file_path_info);
 
-    let summarize_result = summarize(&extracted_folder, &file_path_info);
+    let summarize_result = summarize(&file_path_info);
     if summarize_result.is_err() {
         print_error_with_panic(&format!(
             "Failed to summarize: {}",
@@ -55,9 +49,11 @@ pub fn summarize_wrapper() {
         ));
     }
 
+    let (summarize_data, extracted_folder) = summarize_result.unwrap();
+
     let output_path = format!("{}/summary.json", extracted_folder);
 
-    let write_result = write_struct_to_json(&summarize_result.unwrap(), &output_path);
+    let write_result = write_struct_to_json(&summarize_data, &output_path);
     if write_result.is_err() {
         print_error_with_panic(&format!(
             "Failed to write the summarize result to the file: {}",
@@ -70,32 +66,8 @@ pub fn summarize_wrapper() {
 }
 
 /// Recursively traverse the extracted folder and count the number of files, images, custom XMLs, etc
-fn summarize(
-    extracted_folder: &String,
-    file_path_info: &FilePathInfo,
-) -> Result<SummarizeResult, &'static str> {
-    let output_path = Path::new(&extracted_folder);
-
-    // * First make sure the folder exists
-    if !output_path.exists() {
-        let do_extract = input!(
-            "The extracted folder {} does not exist. \n\tDo you want to extract it? (y/n - default: n): ",
-            &extracted_folder
-        );
-
-        if do_extract.to_lowercase() == "y" {
-            let extract_result = extract_zip(file_path_info);
-            if extract_result.is_err() {
-                return Err(extract_result.err().unwrap());
-            }
-        } else {
-            return Err("The extracted folder does not exist");
-        }
-    }
-
-    if !output_path.is_dir() {
-        return Err("The extracted folder is not a directory");
-    }
+fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &'static str> {
+    let extracted_folder = ensure_ooxml_exist(file_path_info)?;
 
     // * Continue with the summarization
     let mut file_count = 0;
@@ -105,6 +77,7 @@ fn summarize(
         files: Vec::new(),
     };
 
+    let output_path = Path::new(&extracted_folder);
     let visit_result = visit_dirs(output_path, &mut |entry| {
         let path = entry.path();
         let FilePathInfo {
@@ -133,13 +106,16 @@ fn summarize(
         return Err("Failed to visit the directory");
     }
 
-    Ok(SummarizeResult {
-        basic_info: FileInfo {
-            file_name: file_path_info.file_name.clone(),
-            file_path: file_path_info.file_path.clone(),
-            file_size_in_kb: get_file_size_in_kb_from_bytes(file_path_info.file_size),
+    Ok((
+        SummarizeData {
+            basic_info: FileInfo {
+                file_name: file_path_info.file_name.clone(),
+                file_path: file_path_info.file_path.clone(),
+                file_size_in_kb: get_file_size_in_kb_from_bytes(file_path_info.file_size),
+            },
+            file_count,
+            media_info,
         },
-        file_count,
-        media_info,
-    })
+        extracted_folder,
+    ))
 }
