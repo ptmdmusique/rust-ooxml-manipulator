@@ -47,9 +47,16 @@ pub fn extract_zip(file_path_info: &FilePathInfo) -> Result<(), &'static str> {
     // Check if the output folder already exists
     let output_path = Path::new(&root_folder);
     if output_path.exists() {
+        if !output_path.is_dir() {
+            print_error_with_panic(&format!(
+                "The output root folder is not a directory: {}",
+                output_path.to_string_lossy()
+            ));
+        }
+
         println!(
             "{}",
-            "The output folder already exists... skipping folder creation".yellow()
+            "The output root folder already exists... skipping folder creation".yellow()
         );
 
         let override_input = input!("Override? (y/n - default: n): ");

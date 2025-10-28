@@ -87,7 +87,6 @@ I asked ChatGPT
 - to understand what the process is for a Word file extraction (spoiler alert, it's exactly the same as a .zip extraction)
 - to help me review my code after getting yelled at by Clippy
 - to give me a good folder structure to split the code into different modules
-  TODO organize
 
 Beside of that, I also Google
 

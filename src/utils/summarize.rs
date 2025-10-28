@@ -75,14 +75,12 @@ fn summarize(
     file_path_info: &FilePathInfo,
 ) -> Result<SummarizeResult, &'static str> {
     let output_path = Path::new(&extracted_folder);
-    if !output_path.is_dir() {
-        return Err("The extracted folder is not a directory");
-    }
 
     // * First make sure the folder exists
     if !output_path.exists() {
         let do_extract = input!(
-            "The extracted folder does not exist. Do you want to extract it? (y/n - default: n): "
+            "The extracted folder {} does not exist. \n\tDo you want to extract it? (y/n - default: n): ",
+            &extracted_folder
         );
 
         if do_extract.to_lowercase() == "y" {
@@ -93,6 +91,10 @@ fn summarize(
         } else {
             return Err("The extracted folder does not exist");
         }
+    }
+
+    if !output_path.is_dir() {
+        return Err("The extracted folder is not a directory");
     }
 
     // * Continue with the summarization
