@@ -49,9 +49,9 @@ pub fn summarize_wrapper() {
         ));
     }
 
-    let (summarize_data, extracted_folder) = summarize_result.unwrap();
+    let (summarize_data, root_folder) = summarize_result.unwrap();
 
-    let output_path = format!("{}/summary.json", extracted_folder);
+    let output_path = format!("{}/summary.json", root_folder);
 
     let write_result = write_struct_to_json(&summarize_data, &output_path);
     if write_result.is_err() {
@@ -67,7 +67,7 @@ pub fn summarize_wrapper() {
 
 /// Recursively traverse the extracted folder and count the number of files, images, custom XMLs, etc
 fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &'static str> {
-    let extracted_folder = ensure_ooxml_exist(file_path_info)?;
+    let (extracted_folder, root_folder) = ensure_ooxml_exist(file_path_info)?;
 
     // * Continue with the summarization
     let mut file_count = 0;
@@ -116,6 +116,6 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
             file_count,
             media_info,
         },
-        extracted_folder,
+        root_folder,
     ))
 }

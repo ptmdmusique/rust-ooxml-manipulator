@@ -8,9 +8,11 @@ use crate::utils::{
     zip_utils::extract_zip,
 };
 
-pub fn ensure_ooxml_exist(file_path_info: &FilePathInfo) -> Result<String, &'static str> {
+pub fn ensure_ooxml_exist(file_path_info: &FilePathInfo) -> Result<(String, String), &'static str> {
     let ZipFolder {
-        extracted_folder, ..
+        extracted_folder,
+        root_folder,
+        ..
     } = get_output_folder(file_path_info);
 
     let output_path = Path::new(&extracted_folder);
@@ -35,5 +37,5 @@ pub fn ensure_ooxml_exist(file_path_info: &FilePathInfo) -> Result<String, &'sta
         return Err("The extracted folder is not a directory");
     }
 
-    Ok(extracted_folder)
+    Ok((extracted_folder, root_folder))
 }
