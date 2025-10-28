@@ -105,7 +105,7 @@ fn summarize(
         files: Vec::new(),
     };
 
-    let visit_result = visit_dirs(&output_path, &mut |entry| {
+    let visit_result = visit_dirs(output_path, &mut |entry| {
         let path = entry.path();
         let FilePathInfo {
             file_name,
