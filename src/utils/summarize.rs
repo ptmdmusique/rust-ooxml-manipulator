@@ -4,6 +4,7 @@ use std::path::Path;
 
 use crate::utils::ensure_ooxml_exist::ensure_ooxml_exist;
 use crate::utils::files::get_file_size_in_kb_from_bytes;
+use crate::utils::files::is_file_custom_xml;
 use crate::utils::files::is_image_extension;
 use crate::utils::files::visit_dirs;
 use crate::utils::files::write_struct_to_json;
@@ -30,6 +31,7 @@ struct SummarizeData {
     basic_info: FileInfo,
     file_count: u32,
     media_info: MediaInfo,
+    custom_xml_files: Vec<FileInfo>,
 }
 
 /// Summarize the structure of the Word file
@@ -76,6 +78,7 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
         total_size_in_kb: 0,
         files: Vec::new(),
     };
+    let mut custom_xml_files: Vec<FileInfo> = Vec::new();
 
     let output_path = Path::new(&extracted_folder);
     let visit_result = visit_dirs(output_path, &mut |entry| {
@@ -91,7 +94,13 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
         let file_size_in_kb = get_file_size_in_kb_from_bytes(file_size);
         file_count += 1;
 
-        if file_extension.is_some() && is_image_extension(&file_extension.unwrap()) {
+        if is_file_custom_xml(&file_name) {
+            custom_xml_files.push(FileInfo {
+                file_name,
+                file_path,
+                file_size_in_kb,
+            });
+        } else if file_extension.is_some() && is_image_extension(&file_extension.unwrap()) {
             media_info.file_count += 1;
             media_info.total_size_in_kb += file_size_in_kb;
             media_info.files.push(FileInfo {
@@ -115,6 +124,7 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
             },
             file_count,
             media_info,
+            custom_xml_files,
         },
         root_folder,
     ))
