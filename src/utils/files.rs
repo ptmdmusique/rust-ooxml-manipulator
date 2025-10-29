@@ -1,5 +1,6 @@
 use crate::utils::types::FilePathInfo;
 use crate::utils::types::ZipFolder;
+use regex::Regex;
 use serde::Serialize;
 use std::fs::{self, DirEntry};
 use std::io;
@@ -53,4 +54,82 @@ pub fn write_struct_to_json<T: Serialize>(data: &T, file_path: &str) -> Result<(
 
 pub fn get_file_size_in_kb_from_bytes(file_size: u64) -> u64 {
     file_size / 1024
+}
+
+/// Check whether the given file name is a custom XML file
+/// An example of a custom XML file is `item1.xml`
+/// This will not return `true` for `itemProps1.xml`
+pub fn is_file_custom_xml(file_name: &str) -> bool {
+    let pattern = r"^item\d+\.xml$";
+    let re = Regex::new(pattern).unwrap();
+
+    re.is_match(file_name)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_file_custom_xml() {
+        // Valid custom XML files
+        assert!(is_file_custom_xml("item1.xml"));
+        assert!(is_file_custom_xml("item123.xml"));
+        assert!(is_file_custom_xml("item0.xml"));
+        assert!(is_file_custom_xml("item999.xml"));
+
+        // Invalid custom XML files
+        assert!(!is_file_custom_xml("item.xml")); // missing number
+        assert!(!is_file_custom_xml("item1a.xml")); // contains letter
+        assert!(!is_file_custom_xml("item1")); // missing .xml extension
+        assert!(!is_file_custom_xml("item1.XML")); // wrong case
+        assert!(!is_file_custom_xml("item1.txt")); // wrong extension
+        assert!(!is_file_custom_xml("custom.xml")); // wrong prefix
+        assert!(!is_file_custom_xml("itemProps1.xml")); // wrong prefix (as mentioned in doc)
+        assert!(!is_file_custom_xml("")); // empty string
+        assert!(!is_file_custom_xml("item.xml.bak")); // extra extension
+    }
+
+    #[test]
+    fn test_get_file_size_in_kb_from_bytes() {
+        // Test exact conversions
+        assert_eq!(get_file_size_in_kb_from_bytes(0), 0);
+        assert_eq!(get_file_size_in_kb_from_bytes(1024), 1);
+        assert_eq!(get_file_size_in_kb_from_bytes(2048), 2);
+        assert_eq!(get_file_size_in_kb_from_bytes(5120), 5);
+
+        // Test with remainders (should truncate)
+        assert_eq!(get_file_size_in_kb_from_bytes(1023), 0); // less than 1KB
+        assert_eq!(get_file_size_in_kb_from_bytes(1536), 1); // 1.5KB -> 1KB
+        assert_eq!(get_file_size_in_kb_from_bytes(2047), 1); // just under 2KB
+        assert_eq!(get_file_size_in_kb_from_bytes(2049), 2); // just over 2KB
+
+        // Test larger values
+        assert_eq!(get_file_size_in_kb_from_bytes(1024 * 1024), 1024); // 1MB
+        assert_eq!(get_file_size_in_kb_from_bytes(1024 * 1024 * 5), 5120); // 5MB
+    }
+
+    #[test]
+    fn test_is_image_extension() {
+        // Valid image extensions (case sensitive)
+        assert!(is_image_extension("jpg"));
+        assert!(is_image_extension("jpeg"));
+        assert!(is_image_extension("png"));
+        assert!(is_image_extension("gif"));
+        assert!(is_image_extension("bmp"));
+        assert!(is_image_extension("tiff"));
+        assert!(is_image_extension("ico"));
+
+        // Invalid extensions
+        assert!(!is_image_extension("JPG")); // wrong case
+        assert!(!is_image_extension("PNG")); // wrong case
+        assert!(!is_image_extension("webp")); // not supported
+        assert!(!is_image_extension("svg")); // not supported
+        assert!(!is_image_extension("pdf")); // not an image
+        assert!(!is_image_extension("txt")); // not an image
+        assert!(!is_image_extension("")); // empty string
+        assert!(!is_image_extension("jpegx")); // invalid variant
+        assert!(!is_image_extension("png.")); // with dot
+        assert!(!is_image_extension(".png")); // with leading dot
+    }
 }
