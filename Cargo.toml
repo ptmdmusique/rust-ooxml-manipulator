@@ -5,8 +5,8 @@ edition = "2024"
 
 [dependencies]
 colored = "3.0.0"
+fancy-regex = "0.16.2"
 prompted = "0.2.8"
-regex = "1.12.2"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 zip = "3.0"

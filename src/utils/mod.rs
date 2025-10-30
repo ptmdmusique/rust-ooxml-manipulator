@@ -1,3 +1,4 @@
+pub mod analyze_custom_xml;
 pub mod ensure_ooxml_exist;
 pub mod files;
 pub mod input_utils;

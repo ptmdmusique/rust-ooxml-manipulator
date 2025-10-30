@@ -1,6 +1,6 @@
 use crate::utils::types::FilePathInfo;
 use crate::utils::types::ZipFolder;
-use regex::Regex;
+use fancy_regex::Regex;
 use serde::Serialize;
 use std::fs::{self, DirEntry};
 use std::io;
@@ -63,7 +63,7 @@ pub fn is_file_custom_xml(file_name: &str) -> bool {
     let pattern = r"^item\d+\.xml$";
     let re = Regex::new(pattern).unwrap();
 
-    re.is_match(file_name)
+    re.is_match(file_name).unwrap_or(false)
 }
 
 #[cfg(test)]

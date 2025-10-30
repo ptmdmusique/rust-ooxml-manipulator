@@ -87,14 +87,18 @@ I asked ChatGPT
 - to understand what the process is for a Word file extraction (spoiler alert, it's exactly the same as a .zip extraction)
 - to help me review my code after getting yelled at by Clippy
 - to give me a good folder structure to split the code into different modules
+- to help me generate various regex
+- to help me generate some unit test cases
 
 Beside of that, I also Google
 
 - how to unzip in Rust
 - how to `readdir` in Rust
 - how to serialize JSON and write it to file in Rust
+- how to use Regex
 
 ### Issue
 
 - Function closure
-- Inheritance when serializing struct to JSON
+- Inheritance when serializing struct to a JSON
+- Parsing string content into a JSON
