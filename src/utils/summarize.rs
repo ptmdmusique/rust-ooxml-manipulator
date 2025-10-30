@@ -14,8 +14,8 @@ use crate::utils::{input_utils::get_file_path_from_input, print_utils::print_fn_
 
 #[derive(Serialize, Deserialize)]
 struct FileInfo {
-    file_name: String,
-    file_path: String,
+    file_name_with_extension: String,
+    full_file_path: String,
     file_size_in_kb: u64,
 }
 
@@ -84,30 +84,32 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
     let visit_result = visit_dirs(output_path, &mut |entry| {
         let path = entry.path();
         let FilePathInfo {
-            file_name,
-            file_path,
+            file_name_with_extension,
             file_size,
             file_extension,
+            full_file_path,
             ..
         } = FilePathInfo::new(path.to_string_lossy().to_string());
 
         let file_size_in_kb = get_file_size_in_kb_from_bytes(file_size);
         file_count += 1;
 
-        if is_file_custom_xml(&file_name) {
-            custom_xml_files.push(FileInfo {
-                file_name,
-                file_path,
-                file_size_in_kb,
-            });
-        } else if file_extension.is_some() && is_image_extension(&file_extension.unwrap()) {
-            media_info.file_count += 1;
-            media_info.total_size_in_kb += file_size_in_kb;
-            media_info.files.push(FileInfo {
-                file_name,
-                file_path,
-                file_size_in_kb,
-            });
+        if file_extension.is_some() {
+            if is_file_custom_xml(file_name_with_extension.as_str()) {
+                custom_xml_files.push(FileInfo {
+                    file_name_with_extension,
+                    full_file_path,
+                    file_size_in_kb,
+                });
+            } else if is_image_extension(&file_extension.unwrap()) {
+                media_info.file_count += 1;
+                media_info.total_size_in_kb += file_size_in_kb;
+                media_info.files.push(FileInfo {
+                    file_name_with_extension,
+                    full_file_path,
+                    file_size_in_kb,
+                });
+            }
         }
     });
 
@@ -118,8 +120,8 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
     Ok((
         SummarizeData {
             basic_info: FileInfo {
-                file_name: file_path_info.file_name.clone(),
-                file_path: file_path_info.file_path.clone(),
+                file_name_with_extension: file_path_info.file_name_with_extension.clone(),
+                full_file_path: file_path_info.full_file_path.clone(),
                 file_size_in_kb: get_file_size_in_kb_from_bytes(file_path_info.file_size),
             },
             file_count,

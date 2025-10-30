@@ -8,6 +8,7 @@ pub struct FilePathInfo {
     /// Name of the file without extension
     pub file_name: String,
     pub file_extension: Option<String>,
+    pub file_name_with_extension: String,
     /// File path without the file name
     pub file_path: String,
     pub full_file_path: String,
@@ -19,7 +20,7 @@ impl FilePathInfo {
         // https://stackoverflow.com/questions/73845791/how-to-remove-path-and-get-the-filename-in-rust
         let path = Path::new(&full_file_path);
 
-        let full_file_name = match path.file_name() {
+        let file_name_with_extension = match path.file_name() {
             Some(file_name) => file_name.to_str().unwrap(),
             None => print_error_with_panic(&format!(
                 "Path doesn't contain a file name {}",
@@ -35,7 +36,7 @@ impl FilePathInfo {
             Err(e) => print_error_with_panic(&format!("Failed to get file size: {}", e)),
         };
 
-        let file_name = match full_file_name.split('.').next() {
+        let file_name = match file_name_with_extension.split('.').next() {
             Some(file_name) => file_name.to_string(),
             None => print_error_with_panic(&format!(
                 "File name doesn't have a extension: {}",
@@ -54,6 +55,7 @@ impl FilePathInfo {
         Self {
             file_name,
             file_extension,
+            file_name_with_extension: file_name_with_extension.to_string(),
             file_path: file_path_without_file_name,
             full_file_path,
             file_size,
