@@ -94,14 +94,14 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
         let file_size_in_kb = get_file_size_in_kb_from_bytes(file_size);
         file_count += 1;
 
-        if file_extension.is_some() {
+        if let Some(file_extension) = file_extension {
             if is_file_custom_xml(file_name_with_extension.as_str()) {
                 custom_xml_files.push(FileInfo {
                     file_name_with_extension,
                     full_file_path,
                     file_size_in_kb,
                 });
-            } else if is_image_extension(&file_extension.unwrap()) {
+            } else if is_image_extension(&file_extension) {
                 media_info.file_count += 1;
                 media_info.total_size_in_kb += file_size_in_kb;
                 media_info.files.push(FileInfo {
