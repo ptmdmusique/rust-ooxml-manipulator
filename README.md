@@ -6,16 +6,16 @@
 
 **Description**
 
-A program that extracts a Word file into its [OOXML](https://en.wikipedia.org/wiki/Office_Open_XML) representation and also provide some utils
+A program that extracts a Word file into its [OOXML](https://en.wikipedia.org/wiki/Office_Open_XML) representation and also provides some utils
 
-The major features of this program includes
+The major features of this program include
 
 - extract a Word file into a new folder containing its OOXML representation
 - summarize the structure: how many files, how many images, how many custom XML, etc
 - re-zip into the original Word file after the user has modified the file
 - allow adding/editing custom XMLs via a primitive GUI
 
-**Stretched goals**: might not be include to ensure I meet the deadline
+**Stretched goals**: might not be included to ensure I meet the deadline
 
 - watch for the OOXML changes to update the actual Word file live
 - validate OOXML structure
@@ -24,7 +24,7 @@ The extraction is inspired by this [VSCode Extension](https://marketplace.visual
 
 ## Motivation
 
-I work with Word files daily where we have to inject content from different sources to Word files.
+I work with Word files daily where we inject content from different sources into Word files.
 One of the pain points is the lack of tools to explore and edit the internal structure of those file to understand the output better as well as well as fixing bugs that are not visible through the Word UI.
 
 So this project is going to be the starting point for the tools that will be used in my work.
@@ -44,16 +44,16 @@ This section explains the individual features for more info
 A Word file is a zipped representation of different file types behind the scenes. It includes
 
 - the main OOXML in `document.xml` representing the actual UI shown
-- relationship files indicating the structural relationship between each UI elements in Word
+- relationship files indicating the structural relationship between each UI element in Word
 - images
 - custom metadata (`customXML`) made by the users (most likely coders) programmatically (found via `item1.xml`, `itemProps1.xml`, `item2.xml`, etc)
 - etc
 
-This feature help unzip the Word file into its mentioned internal structure and also re-zip it
+This feature helps unzip the Word file into its mentioned internal structure and also re-zip it
 
 2. Summarize the structure
 
-This will analyze and summary the file info, including
+This will analyze and summarize the file info, including
 
 - basic file info: name, size, number of entries, other metadata
 - image count, size of each, etc
