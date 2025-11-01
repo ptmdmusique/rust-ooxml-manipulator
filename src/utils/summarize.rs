@@ -9,20 +9,14 @@ use crate::utils::files::is_image_extension;
 use crate::utils::files::visit_dirs;
 use crate::utils::files::write_struct_to_json;
 use crate::utils::print_utils::print_error_with_panic;
+use crate::utils::types::FileInfo;
 use crate::utils::types::FilePathInfo;
 use crate::utils::{input_utils::get_file_path_from_input, print_utils::print_fn_progress};
 
 #[derive(Serialize, Deserialize)]
-struct FileInfo {
-    file_name_with_extension: String,
-    full_file_path: String,
-    file_size_in_kb: u64,
-}
-
-#[derive(Serialize, Deserialize)]
 struct MediaInfo {
     file_count: u32,
-    total_size_in_kb: u64,
+    total_size_in_kb: f64,
     files: Vec<FileInfo>,
 }
 
@@ -75,7 +69,7 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
     let mut file_count = 0;
     let mut media_info = MediaInfo {
         file_count: 0,
-        total_size_in_kb: 0,
+        total_size_in_kb: 0.0,
         files: Vec::new(),
     };
     let mut custom_xml_files: Vec<FileInfo> = Vec::new();

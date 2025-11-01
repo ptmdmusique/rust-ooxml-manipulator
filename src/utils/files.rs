@@ -52,8 +52,9 @@ pub fn write_struct_to_json<T: Serialize>(data: &T, file_path: &str) -> Result<(
     fs::write(file_path, json)
 }
 
-pub fn get_file_size_in_kb_from_bytes(file_size: u64) -> u64 {
-    file_size / 1024
+pub fn get_file_size_in_kb_from_bytes(file_size: u64) -> f64 {
+    let kb = file_size as f64 / 1024.0;
+    (kb * 100.0).round() / 100.0
 }
 
 /// Check whether the given file name is a custom XML file
@@ -93,20 +94,25 @@ mod tests {
     #[test]
     fn test_get_file_size_in_kb_from_bytes() {
         // Test exact conversions
-        assert_eq!(get_file_size_in_kb_from_bytes(0), 0);
-        assert_eq!(get_file_size_in_kb_from_bytes(1024), 1);
-        assert_eq!(get_file_size_in_kb_from_bytes(2048), 2);
-        assert_eq!(get_file_size_in_kb_from_bytes(5120), 5);
+        assert_eq!(get_file_size_in_kb_from_bytes(0), 0.0);
+        assert_eq!(get_file_size_in_kb_from_bytes(1024), 1.0);
+        assert_eq!(get_file_size_in_kb_from_bytes(2048), 2.0);
+        assert_eq!(get_file_size_in_kb_from_bytes(5120), 5.0);
 
-        // Test with remainders (should truncate)
-        assert_eq!(get_file_size_in_kb_from_bytes(1023), 0); // less than 1KB
-        assert_eq!(get_file_size_in_kb_from_bytes(1536), 1); // 1.5KB -> 1KB
-        assert_eq!(get_file_size_in_kb_from_bytes(2047), 1); // just under 2KB
-        assert_eq!(get_file_size_in_kb_from_bytes(2049), 2); // just over 2KB
+        // Test with remainders (should round to 2 decimal places)
+        assert_eq!(get_file_size_in_kb_from_bytes(1023), 1.0); // 0.999KB -> 1.0KB
+        assert_eq!(get_file_size_in_kb_from_bytes(1536), 1.5); // 1.5KB -> 1.5KB
+        assert_eq!(get_file_size_in_kb_from_bytes(2047), 2.0); // 1.999KB -> 2.0KB
+        assert_eq!(get_file_size_in_kb_from_bytes(2049), 2.0); // 2.001KB -> 2.0KB
 
         // Test larger values
-        assert_eq!(get_file_size_in_kb_from_bytes(1024 * 1024), 1024); // 1MB
-        assert_eq!(get_file_size_in_kb_from_bytes(1024 * 1024 * 5), 5120); // 5MB
+        assert_eq!(get_file_size_in_kb_from_bytes(1024 * 1024), 1024.0); // 1MB
+        assert_eq!(get_file_size_in_kb_from_bytes(1024 * 1024 * 5), 5120.0); // 5MB
+
+        // Test rounding to 2 decimal places
+        assert_eq!(get_file_size_in_kb_from_bytes(1536), 1.5); // 1536 bytes = 1.5 KB
+        assert_eq!(get_file_size_in_kb_from_bytes(2560), 2.5); // 2560 bytes = 2.5 KB
+        assert_eq!(get_file_size_in_kb_from_bytes(1234), 1.21); // 1234 bytes = 1.205... KB -> 1.21 KB (rounded)
     }
 
     #[test]

@@ -1,16 +1,24 @@
+use colored::Colorize;
 use fancy_regex::Regex;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{collections::HashMap, fs::read_to_string, path::Path};
 
 use crate::utils::{
     ensure_ooxml_exist::ensure_ooxml_exist,
-    files::{is_file_custom_xml, visit_dirs},
+    files::{get_file_size_in_kb_from_bytes, is_file_custom_xml, visit_dirs, write_struct_to_json},
     input_utils::get_file_path_from_input,
-    print_utils::{get_error_message, print_fn_progress},
-    types::FilePathInfo,
+    print_utils::{get_error_message, print_error_with_panic, print_fn_progress},
+    types::{FileInfo, FilePathInfo},
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Serialize, Deserialize)]
+pub struct CustomXmlFile {
+    file_info: FileInfo,
+    custom_xml_info: CustomXmlInfo,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct CustomXmlInfo {
     tag: String,
     attributes: Option<serde_json::Value>,
@@ -27,16 +35,44 @@ pub fn analyze_custom_xml_wrapper() {
     file_path_info.print_info();
 
     let analyze_result = analyze_custom_xml(&file_path_info);
+    if let Err(e) = analyze_result {
+        print_error_with_panic(e);
+    }
+
+    let (custom_xml_infos, root_folder) = analyze_result.unwrap();
+
+    let output_path = format!("{}/customXML.json", root_folder);
+    let write_result = write_struct_to_json(&custom_xml_infos, &output_path);
+    if write_result.is_err() {
+        print_error_with_panic(&format!(
+            "Failed to write the custom XML info to the file: {}",
+            write_result.err().unwrap()
+        ));
+    }
+
+    println!("Custom XML info file: {}", output_path);
+    println!("{}", "Analyzing customXML completed successfully!".green());
 }
 
-fn analyze_custom_xml(file_path_info: &FilePathInfo) -> Result<(), &'static str> {
+fn analyze_custom_xml(
+    file_path_info: &FilePathInfo,
+) -> Result<(Vec<CustomXmlFile>, String), &'static str> {
     let (extracted_folder, root_folder) = ensure_ooxml_exist(file_path_info)?;
+
+    let mut custom_xml_files: Vec<CustomXmlFile> = Vec::new();
 
     // Visit the extracted folder and read the custom XML files
     let output_path = Path::new(&extracted_folder);
     let visit_result = visit_dirs(output_path, &mut |entry| {
         let path = entry.path();
         let file_name = path.file_name().unwrap().to_string_lossy().to_string();
+
+        let FilePathInfo {
+            file_name_with_extension,
+            file_size,
+            full_file_path,
+            ..
+        } = FilePathInfo::new(path.to_string_lossy().to_string());
 
         if is_file_custom_xml(&file_name) {
             // Read the content of the custom XML file as a string
@@ -60,7 +96,21 @@ fn analyze_custom_xml(file_path_info: &FilePathInfo) -> Result<(), &'static str>
                 </someTag>
             */
             let content = content.unwrap();
-            parse_custom_xml_content_for_tag(&content);
+            match parse_custom_xml_content_for_tag(&content) {
+                Ok(custom_xml_info) => {
+                    custom_xml_files.push(CustomXmlFile {
+                        file_info: FileInfo {
+                            file_name_with_extension: file_name_with_extension.clone(),
+                            full_file_path: full_file_path.clone(),
+                            file_size_in_kb: get_file_size_in_kb_from_bytes(file_size),
+                        },
+                        custom_xml_info,
+                    });
+                }
+                Err(e) => {
+                    println!("{}", get_error_message(e));
+                }
+            }
         }
     });
 
@@ -68,7 +118,7 @@ fn analyze_custom_xml(file_path_info: &FilePathInfo) -> Result<(), &'static str>
         return Err("Failed to visit the directory");
     }
 
-    Ok(())
+    Ok((custom_xml_files, root_folder))
 }
 
 /// Parse the custom XML content for a tag

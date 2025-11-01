@@ -1,5 +1,6 @@
 use crate::utils::print_utils::print_error_with_panic;
 use colored::Colorize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 // * ---
@@ -80,4 +81,14 @@ pub struct ZipFolder {
     pub root_folder: String,
     /// The folder where the zip file will be extracted
     pub extracted_folder: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct FileInfo {
+    /// Name of the file with extension
+    pub file_name_with_extension: String,
+    /// Full file path
+    pub full_file_path: String,
+    /// File size in KB
+    pub file_size_in_kb: f64,
 }
