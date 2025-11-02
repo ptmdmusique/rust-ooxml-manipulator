@@ -1,4 +1,7 @@
-use crate::utils::print_utils::print_error_with_panic;
+use crate::utils::{
+    files::{read_struct_from_json, write_struct_to_json},
+    print_utils::print_error_with_panic,
+};
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -91,4 +94,60 @@ pub struct FileInfo {
     pub full_file_path: String,
     /// File size in KB
     pub file_size_in_kb: f64,
+}
+
+/// The path to the preference file that store user's last used params
+pub const PREFERENCE_FILE_PATH: &str = "preference.json";
+
+/// The user preference that stores the last used feature and file path
+///
+/// ! Note that this will automatically save to file when the last used feature, file path or folder path is changed
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct UserPreference {
+    pub last_used_feature: String,
+    pub last_used_file_path: String,
+    pub last_used_folder_path: String,
+    pub last_used_output_file_path: String,
+}
+
+impl UserPreference {
+    pub fn new() -> Self {
+        match read_struct_from_json::<UserPreference>(PREFERENCE_FILE_PATH) {
+            Ok(user_preference) => user_preference,
+            Err(_) => {
+                let user_preference = Self {
+                    last_used_feature: "N/A".to_string(),
+                    last_used_file_path: "N/A".to_string(),
+                    last_used_folder_path: "N/A".to_string(),
+                    last_used_output_file_path: "N/A".to_string(),
+                };
+                user_preference.save_to_file();
+                user_preference
+            }
+        }
+    }
+
+    pub fn save_to_file(&self) {
+        let _ = write_struct_to_json(self, PREFERENCE_FILE_PATH);
+    }
+
+    pub fn save_last_used_file_path(&mut self, file_path: String) {
+        self.last_used_file_path = file_path;
+        self.save_to_file()
+    }
+
+    pub fn save_last_used_folder_path(&mut self, folder_path: String) {
+        self.last_used_folder_path = folder_path;
+        self.save_to_file()
+    }
+
+    pub fn save_last_used_feature(&mut self, feature: String) {
+        self.last_used_feature = feature;
+        self.save_to_file()
+    }
+
+    pub fn save_last_used_output_file_path(&mut self, output_file_path: String) {
+        self.last_used_output_file_path = output_file_path;
+        self.save_to_file()
+    }
 }

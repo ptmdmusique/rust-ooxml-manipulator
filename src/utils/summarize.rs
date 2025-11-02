@@ -9,9 +9,10 @@ use crate::utils::files::is_image_extension;
 use crate::utils::files::visit_dirs;
 use crate::utils::files::write_struct_to_json;
 use crate::utils::print_utils::print_error_with_panic;
-use crate::utils::types::FileInfo;
-use crate::utils::types::FilePathInfo;
-use crate::utils::{files::get_file_path_from_input, print_utils::print_fn_progress};
+use crate::utils::types::{FileInfo, FilePathInfo, UserPreference};
+use crate::utils::{
+    input_utils::get_path_from_input::get_file_path_from_input, print_utils::print_fn_progress,
+};
 
 #[derive(Serialize, Deserialize)]
 struct MediaInfo {
@@ -29,12 +30,12 @@ struct SummarizeData {
 }
 
 /// Summarize the structure of the Word file
-pub fn summarize_wrapper() {
+pub fn summarize_wrapper(user_preference: &mut UserPreference) {
     println!("\n");
     let fn_name = "Summarize";
     print_fn_progress(fn_name, "Summarizing...");
 
-    let file_path_info = get_file_path_from_input();
+    let file_path_info = get_file_path_from_input(user_preference);
     file_path_info.print_info();
 
     let summarize_result = summarize(&file_path_info);

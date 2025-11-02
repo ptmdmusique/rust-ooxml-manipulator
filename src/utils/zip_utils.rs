@@ -1,8 +1,11 @@
 use crate::utils::{
-    files::get_file_path_from_input,
     files::get_output_folder,
+    input_utils::get_path_from_input::{
+        get_file_path_from_input, get_folder_path_from_input_for_rezip,
+        get_output_file_path_from_input_for_rezip,
+    },
     print_utils::{print_error_with_panic, print_fn_progress},
-    types::{FilePathInfo, ZipFolder},
+    types::{FilePathInfo, UserPreference, ZipFolder},
 };
 use colored::Colorize;
 use prompted::input;
@@ -14,12 +17,12 @@ use zip_extensions::{zip_create_from_directory, zip_extract};
 
 // * --- Unzip
 /// Extract the zip file into a new folder
-pub fn extract_zip_wrapper() {
+pub fn extract_zip_wrapper(user_preference: &mut UserPreference) {
     println!("\n");
     let fn_name = "Extract zip";
     print_fn_progress(fn_name, "Extracting zip...");
 
-    let file_path_info = get_file_path_from_input();
+    let file_path_info = get_file_path_from_input(user_preference);
     file_path_info.print_info();
 
     let extract_result = extract_zip(&file_path_info);
@@ -59,7 +62,7 @@ pub fn extract_zip(file_path_info: &FilePathInfo) -> Result<(), &'static str> {
             "The output root folder already exists... skipping folder creation".yellow()
         );
 
-        let override_input = input!("Override? (y/n - default: n): ");
+        let override_input = input!("\tOverride? (y/n - default: n): ");
         if override_input.to_lowercase() == "y" {
             match remove_dir_all(output_path) {
                 Ok(_) => println!(
@@ -72,7 +75,7 @@ pub fn extract_zip(file_path_info: &FilePathInfo) -> Result<(), &'static str> {
             }
         } else {
             println!("{}", "Operation cancelled".yellow());
-            return Err("Operation cancelled");
+            return Ok(());
         }
     }
 
@@ -102,15 +105,17 @@ pub fn extract_zip(file_path_info: &FilePathInfo) -> Result<(), &'static str> {
 
 // * --- Rezip
 /// Rezip an extracted folder into a Word file
-pub fn rezip_folder_wrapper() {
+pub fn rezip_folder_wrapper(user_preference: &mut UserPreference) {
     println!("\n");
     let fn_name = "Rezip folder";
     print_fn_progress(fn_name, "Rezipping folder...");
 
-    let file_path_info = get_file_path_from_input();
-    file_path_info.print_info();
+    let folder_path = get_folder_path_from_input_for_rezip(user_preference);
+    let output_file_path = get_output_file_path_from_input_for_rezip(user_preference);
+    println!("\tRoot folder path: {}", folder_path);
+    println!("\tOutput file path: {}", output_file_path);
 
-    rezip_folder(&file_path_info);
+    rezip_folder(&folder_path, &output_file_path);
 
     print_fn_progress(
         fn_name,
@@ -121,14 +126,8 @@ pub fn rezip_folder_wrapper() {
     );
 }
 
-fn rezip_folder(file_path_info: &FilePathInfo) {
-    let FilePathInfo { full_file_path, .. } = file_path_info;
-
-    let ZipFolder {
-        extracted_folder, ..
-    } = get_output_folder(file_path_info);
-
-    let folder_path = Path::new(&extracted_folder);
+fn rezip_folder(input_folder_path: &String, output_file_path: &String) {
+    let folder_path = Path::new(&input_folder_path);
     if !folder_path.is_dir() {
         print_error_with_panic(&format!(
             "The folder path is not a directory: {}",
@@ -138,17 +137,17 @@ fn rezip_folder(file_path_info: &FilePathInfo) {
 
     println!(
         "Creating the zip file from {} to {}...",
-        extracted_folder, full_file_path
+        input_folder_path, output_file_path
     );
 
     match zip_create_from_directory(
-        &Path::new(full_file_path).to_path_buf(),
+        &Path::new(&output_file_path).to_path_buf(),
         &folder_path.to_path_buf(),
     ) {
         Ok(_) => println!("{}", "Zip file created successfully".green()),
         Err(e) => print_error_with_panic(&format!(
             "Failed to create the zip file from folder {}: {}",
-            extracted_folder, e
+            input_folder_path, e
         )),
     }
 }

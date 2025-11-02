@@ -6,12 +6,10 @@ use std::{collections::HashMap, fs::read_to_string, path::Path};
 
 use crate::utils::{
     ensure_ooxml_exist::ensure_ooxml_exist,
-    files::{
-        get_file_path_from_input, get_file_size_in_kb_from_bytes, is_file_custom_xml, visit_dirs,
-        write_struct_to_json,
-    },
+    files::{get_file_size_in_kb_from_bytes, is_file_custom_xml, visit_dirs, write_struct_to_json},
+    input_utils::get_path_from_input::get_file_path_from_input,
     print_utils::{get_error_message, print_error_with_panic, print_fn_progress},
-    types::{FileInfo, FilePathInfo},
+    types::{FileInfo, FilePathInfo, UserPreference},
 };
 
 #[derive(Serialize, Deserialize)]
@@ -28,12 +26,12 @@ struct CustomXmlInfo {
 }
 
 /// Analyze the custom XMLs in the extracted folder
-pub fn analyze_custom_xml_wrapper() {
+pub fn analyze_custom_xml_wrapper(user_preference: &mut UserPreference) {
     println!("\n");
     let fn_name = "Analyze customXML";
     print_fn_progress(fn_name, "Analyzing customXML...");
 
-    let file_path_info = get_file_path_from_input();
+    let file_path_info = get_file_path_from_input(user_preference);
     file_path_info.print_info();
 
     let analyze_result = analyze_custom_xml(&file_path_info);

@@ -1,17 +1,14 @@
 use crate::utils::types::FilePathInfo;
 use crate::utils::types::ZipFolder;
 use fancy_regex::Regex;
-use prompted::input;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
+use std::error::Error;
+use std::fs::File;
 use std::fs::{self, DirEntry};
 use std::io;
+use std::io::BufReader;
 use std::path::Path;
-
-/// Get the file path from the input
-pub fn get_file_path_from_input() -> FilePathInfo {
-    let input_path = input!("Enter the path of the file: ");
-    FilePathInfo::new(input_path)
-}
 
 /// Get the output folder for the zip file extraction including the root folder and the folder that the Word file will be extracted to
 pub fn get_output_folder(file_path_info: &FilePathInfo) -> ZipFolder {
@@ -57,6 +54,15 @@ pub fn is_image_extension(extension: &str) -> bool {
 pub fn write_struct_to_json<T: Serialize>(data: &T, file_path: &str) -> Result<(), std::io::Error> {
     let json = serde_json::to_string_pretty(data)?;
     fs::write(file_path, json)
+}
+
+pub fn read_struct_from_json<T: DeserializeOwned>(file_path: &str) -> Result<T, Box<dyn Error>> {
+    // https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let data = serde_json::from_reader(reader)?;
+    Ok(data)
 }
 
 pub fn get_file_size_in_kb_from_bytes(file_size: u64) -> f64 {
