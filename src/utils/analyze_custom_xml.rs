@@ -6,8 +6,10 @@ use std::{collections::HashMap, fs::read_to_string, path::Path};
 
 use crate::utils::{
     ensure_ooxml_exist::ensure_ooxml_exist,
-    files::{get_file_size_in_kb_from_bytes, is_file_custom_xml, visit_dirs, write_struct_to_json},
-    input_utils::get_file_path_from_input,
+    files::{
+        get_file_path_from_input, get_file_size_in_kb_from_bytes, is_file_custom_xml, visit_dirs,
+        write_struct_to_json,
+    },
     print_utils::{get_error_message, print_error_with_panic, print_fn_progress},
     types::{FileInfo, FilePathInfo},
 };

@@ -1,10 +1,17 @@
 use crate::utils::types::FilePathInfo;
 use crate::utils::types::ZipFolder;
 use fancy_regex::Regex;
+use prompted::input;
 use serde::Serialize;
 use std::fs::{self, DirEntry};
 use std::io;
 use std::path::Path;
+
+/// Get the file path from the input
+pub fn get_file_path_from_input() -> FilePathInfo {
+    let input_path = input!("Enter the path of the file: ");
+    FilePathInfo::new(input_path)
+}
 
 /// Get the output folder for the zip file extraction including the root folder and the folder that the Word file will be extracted to
 pub fn get_output_folder(file_path_info: &FilePathInfo) -> ZipFolder {

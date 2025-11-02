@@ -11,7 +11,7 @@ use crate::utils::files::write_struct_to_json;
 use crate::utils::print_utils::print_error_with_panic;
 use crate::utils::types::FileInfo;
 use crate::utils::types::FilePathInfo;
-use crate::utils::{input_utils::get_file_path_from_input, print_utils::print_fn_progress};
+use crate::utils::{files::get_file_path_from_input, print_utils::print_fn_progress};
 
 #[derive(Serialize, Deserialize)]
 struct MediaInfo {

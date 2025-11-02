@@ -1,6 +1,6 @@
 use crate::utils::{
+    files::get_file_path_from_input,
     files::get_output_folder,
-    input_utils::get_file_path_from_input,
     print_utils::{print_error_with_panic, print_fn_progress},
     types::{FilePathInfo, ZipFolder},
 };
