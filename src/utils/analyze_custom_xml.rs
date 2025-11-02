@@ -9,7 +9,7 @@ use crate::utils::{
     files::{get_file_size_in_kb_from_bytes, is_file_custom_xml, visit_dirs, write_struct_to_json},
     input_utils::get_path_from_input::get_file_path_from_input,
     print_utils::{get_error_message, print_error_with_panic, print_fn_progress},
-    types::{FileInfo, FilePathInfo, UserPreference},
+    types::{CUSTOM_XML_FILE_NAME, FileInfo, FilePathInfo, UserPreference},
 };
 
 #[derive(Serialize, Deserialize)]
@@ -41,7 +41,7 @@ pub fn analyze_custom_xml_wrapper(user_preference: &mut UserPreference) {
 
     let (custom_xml_infos, root_folder) = analyze_result.unwrap();
 
-    let output_path = format!("{}/customXML.json", root_folder);
+    let output_path = format!("{}/{}", root_folder, CUSTOM_XML_FILE_NAME);
     let write_result = write_struct_to_json(&custom_xml_infos, &output_path);
     if write_result.is_err() {
         print_error_with_panic(&format!(

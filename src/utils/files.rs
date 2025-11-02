@@ -1,3 +1,4 @@
+use crate::utils::types::EXTRACTED_FOLDER_NAME;
 use crate::utils::types::FilePathInfo;
 use crate::utils::types::ZipFolder;
 use fancy_regex::Regex;
@@ -19,7 +20,7 @@ pub fn get_output_folder(file_path_info: &FilePathInfo) -> ZipFolder {
     } = file_path_info;
 
     let output_folder = format!("{}/{}", file_path, file_name);
-    let zip_output_folder = format!("{}/{}", output_folder, "extracted");
+    let zip_output_folder = format!("{}/{}", output_folder, EXTRACTED_FOLDER_NAME);
 
     ZipFolder {
         root_folder: output_folder,

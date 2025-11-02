@@ -6,6 +6,13 @@ use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
+pub const EXTRACTED_FOLDER_NAME: &str = "extracted";
+pub const SUMMARY_FILE_NAME: &str = "summary.json";
+/// The name of the analyzed custom XML file
+pub const CUSTOM_XML_FILE_NAME: &str = "customXML.json";
+/// The path to the preference file that store user's last used params
+const PREFERENCE_FILE_PATH: &str = "preference.json";
+
 // * ---
 /// Info about the file path
 pub struct FilePathInfo {
@@ -95,9 +102,6 @@ pub struct FileInfo {
     /// File size in KB
     pub file_size_in_kb: f64,
 }
-
-/// The path to the preference file that store user's last used params
-pub const PREFERENCE_FILE_PATH: &str = "preference.json";
 
 /// The user preference that stores the last used feature and file path
 ///

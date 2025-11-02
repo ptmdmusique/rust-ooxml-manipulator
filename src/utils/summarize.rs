@@ -9,6 +9,7 @@ use crate::utils::files::is_image_extension;
 use crate::utils::files::visit_dirs;
 use crate::utils::files::write_struct_to_json;
 use crate::utils::print_utils::print_error_with_panic;
+use crate::utils::types::SUMMARY_FILE_NAME;
 use crate::utils::types::{FileInfo, FilePathInfo, UserPreference};
 use crate::utils::{
     input_utils::get_path_from_input::get_file_path_from_input, print_utils::print_fn_progress,
@@ -48,7 +49,7 @@ pub fn summarize_wrapper(user_preference: &mut UserPreference) {
 
     let (summarize_data, root_folder) = summarize_result.unwrap();
 
-    let output_path = format!("{}/summary.json", root_folder);
+    let output_path = format!("{}/{}", root_folder, SUMMARY_FILE_NAME);
 
     let write_result = write_struct_to_json(&summarize_data, &output_path);
     if write_result.is_err() {
