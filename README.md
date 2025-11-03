@@ -76,7 +76,31 @@ Analyze the `item*.xml` files to get the list of custom XML embedded in the Word
 
 > Note that for file paths, use the path that is relative to the root of the project. For example, I have a `.local/test file.docx` at the root, my input path will be exactly the same, no quote needed
 
-TODO
+**1. Word unzipping**
+
+Simply input the relative path to the Word file, the program will unzip the file into a folder with the same name (minus the extension) next to the source file
+
+**2. unzipped Word zipping**
+
+Input the folder to the extracted folder and the output file name, the program will handle the rest
+
+The output file should be the same as before it was unzipped.
+
+**3. Summarize the structure**
+
+Input the path to the source Word file, the program will
+
+- Unzip the file if needed
+- Summarize the extracted folder
+- Save the result into `summary.json` inside the root of the unzipped Word folder
+
+**4. Analyze customXML**
+
+Input the path to the source Word file, the program will
+
+- Unzip the file if needed
+- Iterate over the `customXml` folder inside extracted folder
+- Save the result into `customXML.json` inside the root of the unzipped Word folder
 
 ## Issue and credit
 
