@@ -9,7 +9,7 @@ use std::path::Path;
 pub const EXTRACTED_FOLDER_NAME: &str = "extracted";
 pub const SUMMARY_FILE_NAME: &str = "summary.json";
 /// The name of the analyzed custom XML file
-pub const CUSTOM_XML_FILE_NAME: &str = "customXML.json";
+pub const CUSTOM_XML_FILE_NAME: &str = "customXml.json";
 /// The path to the preference file that store user's last used params
 const PREFERENCE_FILE_PATH: &str = "preference.json";
 
@@ -114,7 +114,7 @@ pub struct UserPreference {
     pub last_used_extracted_folder_path: String,
     /// The path to the output file that will be created
     pub last_used_output_file_path: String,
-    /// The path to the root folder that contains the extracted and other files such as customXML.json and summary.json
+    /// The path to the root folder that contains the extracted and other files such as customXml.json and summary.json
     pub last_used_root_folder_path: String,
 }
 

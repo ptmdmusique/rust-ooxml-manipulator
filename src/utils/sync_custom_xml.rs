@@ -10,7 +10,7 @@ use crate::utils::{
     types::{CUSTOM_XML_FILE_NAME, EXTRACTED_FOLDER_NAME, UserPreference},
 };
 
-/// Sync the customXML.json back to the customXml folder
+/// Sync the customXml.json back to the customXml folder
 pub fn sync_custom_xml_wrapper(user_preference: &mut UserPreference) {
     println!("\n");
     let fn_name = "Sync customXML";
@@ -27,26 +27,27 @@ pub fn sync_custom_xml_wrapper(user_preference: &mut UserPreference) {
     println!("{}", "Syncing customXML completed successfully!".green());
 }
 
-/// Sync the customXML.json back to the customXml folder inside the extracted folder
-/// This will also create the customXml folder if it doesn't exist
+/// Sync the customXml.json back to the customXml folder inside the extracted folder
+///
 /// ! Note that this will override the content of the customXml folder
+///
+/// This also doesn't support syncing the item props and rels files
 fn sync_custom_xml(root_folder: &str) -> Result<(), &'static str> {
-    // * Read the customXML.json file
+    // * Read the customXml.json file
     let custom_xml_json_path = format!("{}/{}", root_folder, CUSTOM_XML_FILE_NAME);
     if !Path::new(&custom_xml_json_path).exists() {
-        return Err("customXML.json file not found in the root folder");
+        return Err("customXml.json file not found in the root folder");
     }
 
     let custom_xml_files: Vec<CustomXmlFile> = match read_struct_from_json(&custom_xml_json_path) {
         Ok(files) => files,
         Err(_) => {
-            return Err("Failed to read customXML.json");
+            return Err("Failed to read customXml.json");
         }
     };
 
     if custom_xml_files.is_empty() {
-        println!("No custom XML files found in customXML.json");
-        return Ok(());
+        return Err("No custom XML files found in customXml.json");
     }
 
     // * Get the customXml folder path inside extracted folder
@@ -57,11 +58,11 @@ fn sync_custom_xml(root_folder: &str) -> Result<(), &'static str> {
         custom_xml_folder = format!("{}/{}/customXML", root_folder, EXTRACTED_FOLDER_NAME);
     }
 
+    // TODO: implement this feature later
+    // We'll need to also add the item props and rels files
     let custom_xml_folder_path = Path::new(&custom_xml_folder);
     if !custom_xml_folder_path.exists() {
-        // Create the customXml folder if it doesn't exist
-        fs::create_dir_all(custom_xml_folder_path)
-            .map_err(|_| "Failed to create customXml folder")?;
+        return Err("customXml folder not found in the extracted folder");
     }
 
     // * Sync each custom XML file

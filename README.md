@@ -65,7 +65,7 @@ The result will be stored in `summary.json`
 
 3. Analyze and update customXML
 
-Analyze the `item*.xml` files to get the list of custom XML embedded in the Word file. The result will be stored in `customXML.json`.
+Analyze the `item*.xml` files to get the list of custom XML embedded in the Word file. The result will be stored in `customXml.json`.
 
 We'll also support saving the `customXML` back to the actual xml file
 
@@ -102,13 +102,13 @@ Input the path to the source Word file, the program will
 
 - Unzip the file if needed
 - Iterate over the `customXml` folder inside extracted folder
-- Save the result into `customXML.json` inside the root of the unzipped Word folder
+- Save the result into `customXml.json` inside the root of the unzipped Word folder
 
 **5. Edit customXML**
 
-Once the customXML is analyzed, you can freely edit the `customXML.json`. Once done, you can run the program to resync it.
+Once the customXML is analyzed, you can freely edit the `customXml.json`. Once done, you can run the program to resync it.
 
-Input the path to the root folder that includes the unzipped Word file (`extracted` folder) and the `customXML.json` file. The program will
+Input the path to the root folder that includes the unzipped Word file (`extracted` folder) and the `customXml.json` file. The program will
 
 - Analyze your `customXml.json` content
 - Iterate over the `customXml` folder inside the `extracted` folder
