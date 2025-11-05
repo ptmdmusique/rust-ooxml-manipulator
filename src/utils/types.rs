@@ -110,8 +110,12 @@ pub struct FileInfo {
 pub struct UserPreference {
     pub last_used_feature: String,
     pub last_used_file_path: String,
-    pub last_used_folder_path: String,
+    /// Folder containing the extracted files
+    pub last_used_extracted_folder_path: String,
+    /// The path to the output file that will be created
     pub last_used_output_file_path: String,
+    /// The path to the root folder that contains the extracted and other files such as customXML.json and summary.json
+    pub last_used_root_folder_path: String,
 }
 
 impl UserPreference {
@@ -122,8 +126,9 @@ impl UserPreference {
                 let user_preference = Self {
                     last_used_feature: "N/A".to_string(),
                     last_used_file_path: "N/A".to_string(),
-                    last_used_folder_path: "N/A".to_string(),
+                    last_used_extracted_folder_path: "N/A".to_string(),
                     last_used_output_file_path: "N/A".to_string(),
+                    last_used_root_folder_path: "N/A".to_string(),
                 };
                 user_preference.save_to_file();
                 user_preference
@@ -141,7 +146,7 @@ impl UserPreference {
     }
 
     pub fn save_last_used_folder_path(&mut self, folder_path: String) {
-        self.last_used_folder_path = folder_path;
+        self.last_used_extracted_folder_path = folder_path;
         self.save_to_file()
     }
 
@@ -150,8 +155,13 @@ impl UserPreference {
         self.save_to_file()
     }
 
-    pub fn save_last_used_output_file_path(&mut self, output_file_path: String) {
-        self.last_used_output_file_path = output_file_path;
+    pub fn save_last_used_output_file_path(&mut self, last_used_output_file_path: String) {
+        self.last_used_output_file_path = last_used_output_file_path;
+        self.save_to_file()
+    }
+
+    pub fn save_last_used_root_folder_path(&mut self, root_folder_path: String) {
+        self.last_used_root_folder_path = root_folder_path;
         self.save_to_file()
     }
 }

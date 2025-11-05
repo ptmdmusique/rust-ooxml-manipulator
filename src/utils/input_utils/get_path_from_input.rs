@@ -26,7 +26,7 @@ pub fn get_file_path_from_input(user_preference: &mut UserPreference) -> FilePat
 /// * Rezip stuff
 /// Get the folder path from the input for rezip
 pub fn get_folder_path_from_input_for_rezip(user_preference: &mut UserPreference) -> String {
-    let last_input_path = user_preference.clone().last_used_folder_path;
+    let last_input_path = user_preference.clone().last_used_extracted_folder_path;
 
     let mut input_path = input!(
         "{}",
@@ -61,6 +61,29 @@ pub fn get_output_file_path_from_input_for_rezip(user_preference: &mut UserPrefe
         input_path = last_input_path;
     } else if input_path != last_input_path {
         user_preference.save_last_used_output_file_path(input_path.clone());
+    }
+
+    input_path
+}
+
+/// * Sync customXML
+
+/// Get the folder path from the input for sync
+pub fn get_folder_path_from_input_for_sync(user_preference: &mut UserPreference) -> String {
+    let last_input_path = user_preference.clone().last_used_root_folder_path;
+
+    let mut input_path = input!(
+        "{}",
+        format!(
+            "Enter the path of folder that contains the extracted folder (default: {}): ",
+            last_input_path
+        )
+    );
+
+    if input_path.is_empty() {
+        input_path = last_input_path;
+    } else if input_path != last_input_path {
+        user_preference.save_last_used_root_folder_path(input_path.clone());
     }
 
     input_path

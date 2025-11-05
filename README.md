@@ -63,9 +63,11 @@ Note that this will extract the Word file if it's not found
 
 The result will be stored in `summary.json`
 
-3. Analyze customXML
+3. Analyze and update customXML
 
-Analyze the `item*.xml` files to get the list of custom XML embedded in the Word file. The result will be stored in `customXML.json`
+Analyze the `item*.xml` files to get the list of custom XML embedded in the Word file. The result will be stored in `customXML.json`.
+
+We'll also support saving the `customXML` back to the actual xml file
 
 ## How to run
 
@@ -102,6 +104,16 @@ Input the path to the source Word file, the program will
 - Iterate over the `customXml` folder inside extracted folder
 - Save the result into `customXML.json` inside the root of the unzipped Word folder
 
+**5. Edit customXML**
+
+Once the customXML is analyzed, you can freely edit the `customXML.json`. Once done, you can run the program to resync it.
+
+Input the path to the root folder that includes the unzipped Word file (`extracted` folder) and the `customXML.json` file. The program will
+
+- Analyze your `customXml.json` content
+- Iterate over the `customXml` folder inside the `extracted` folder
+- Override the content of individual file correspondingly
+
 ## Issue and credit
 
 ### Credit
@@ -120,6 +132,7 @@ Beside of that, I also Google
 - how to `readdir` in Rust
 - how to serialize JSON and write it to file in Rust
 - how to use Regex
+- how to watch for file change
 
 ### Issue
 

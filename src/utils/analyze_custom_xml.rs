@@ -14,15 +14,15 @@ use crate::utils::{
 
 #[derive(Serialize, Deserialize)]
 pub struct CustomXmlFile {
-    file_info: FileInfo,
-    custom_xml_info: CustomXmlInfo,
+    pub file_info: FileInfo,
+    pub custom_xml_info: CustomXmlInfo,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct CustomXmlInfo {
-    tag: String,
-    attributes: Option<serde_json::Value>,
-    json_content: serde_json::Value,
+pub struct CustomXmlInfo {
+    pub tag: String,
+    pub attributes: Option<serde_json::Value>,
+    pub json_content: serde_json::Value,
 }
 
 /// Analyze the custom XMLs in the extracted folder

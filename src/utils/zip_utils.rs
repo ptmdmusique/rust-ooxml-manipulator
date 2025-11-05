@@ -112,7 +112,7 @@ pub fn rezip_folder_wrapper(user_preference: &mut UserPreference) {
 
     let folder_path = get_folder_path_from_input_for_rezip(user_preference);
     let output_file_path = get_output_file_path_from_input_for_rezip(user_preference);
-    println!("\tRoot folder path: {}", folder_path);
+    println!("\tExtracted folder path: {}", folder_path);
     println!("\tOutput file path: {}", output_file_path);
 
     rezip_folder(&folder_path, &output_file_path);
