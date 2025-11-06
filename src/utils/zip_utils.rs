@@ -115,7 +115,9 @@ pub fn rezip_folder_wrapper(user_preference: &mut UserPreference) {
     println!("\tExtracted folder path: {}", folder_path);
     println!("\tOutput file path: {}", output_file_path);
 
-    rezip_folder(&folder_path, &output_file_path);
+    if let Err(e) = rezip_folder(&folder_path, &output_file_path) {
+        print_error_with_panic(&e);
+    }
 
     print_fn_progress(
         fn_name,
@@ -126,10 +128,10 @@ pub fn rezip_folder_wrapper(user_preference: &mut UserPreference) {
     );
 }
 
-fn rezip_folder(input_folder_path: &String, output_file_path: &String) {
+pub fn rezip_folder(input_folder_path: &str, output_file_path: &str) -> Result<(), String> {
     let folder_path = Path::new(&input_folder_path);
     if !folder_path.is_dir() {
-        print_error_with_panic(&format!(
+        return Err(format!(
             "The folder path is not a directory: {}",
             folder_path.to_string_lossy()
         ));
@@ -144,8 +146,11 @@ fn rezip_folder(input_folder_path: &String, output_file_path: &String) {
         &Path::new(&output_file_path).to_path_buf(),
         &folder_path.to_path_buf(),
     ) {
-        Ok(_) => println!("{}", "Zip file created successfully".green()),
-        Err(e) => print_error_with_panic(&format!(
+        Ok(_) => {
+            println!("{}", "Zip file created successfully".green());
+            Ok(())
+        }
+        Err(e) => Err(format!(
             "Failed to create the zip file from folder {}: {}",
             input_folder_path, e
         )),

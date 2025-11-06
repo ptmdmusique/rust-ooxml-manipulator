@@ -1,5 +1,6 @@
 use crate::utils::{
     analyze_custom_xml::analyze_custom_xml_wrapper,
+    file_watcher::watch_folder_wrapper,
     summarize::summarize_wrapper,
     sync_custom_xml::sync_custom_xml_wrapper,
     types::UserPreference,
@@ -16,6 +17,7 @@ pub fn get_fn_to_call() -> Result<(), &'static str> {
     println!("\t3. Summarize");
     println!("\t4. Analyze customXML");
     println!("\t5. Sync customXML");
+    println!("\t6. Watch folder for file changes");
 
     let mut input_feature = input!(
         "Enter the feature number you want to use (default: {}): ",
@@ -34,6 +36,7 @@ pub fn get_fn_to_call() -> Result<(), &'static str> {
         "3" => summarize_wrapper(&mut user_preference),
         "4" => analyze_custom_xml_wrapper(&mut user_preference),
         "5" => sync_custom_xml_wrapper(&mut user_preference),
+        "6" => watch_folder_wrapper(&mut user_preference),
         _ => return Err("Invalid feature"),
     }
 
