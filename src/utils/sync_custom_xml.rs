@@ -5,7 +5,7 @@ use std::path::Path;
 use crate::utils::{
     analyze_custom_xml::CustomXmlFile,
     files::read_struct_from_json,
-    input_utils::get_path_from_input::get_folder_path_from_input_for_sync,
+    input_utils::get_path_from_input::get_extracted_root_folder_path,
     print_utils::{get_error_message, print_error_with_panic, print_fn_progress},
     types::{CUSTOM_XML_FILE_NAME, EXTRACTED_FOLDER_NAME, UserPreference},
 };
@@ -16,7 +16,7 @@ pub fn sync_custom_xml_wrapper(user_preference: &mut UserPreference) {
     let fn_name = "Sync customXML";
     print_fn_progress(fn_name, "Syncing customXML...");
 
-    let root_folder = get_folder_path_from_input_for_sync(user_preference);
+    let root_folder = get_extracted_root_folder_path(user_preference);
     println!("Root folder: {}", root_folder);
 
     let sync_result = sync_custom_xml(&root_folder);
@@ -32,7 +32,7 @@ pub fn sync_custom_xml_wrapper(user_preference: &mut UserPreference) {
 /// ! Note that this will override the content of the customXml folder
 ///
 /// This also doesn't support syncing the item props and rels files
-fn sync_custom_xml(root_folder: &str) -> Result<(), &'static str> {
+pub fn sync_custom_xml(root_folder: &str) -> Result<(), &'static str> {
     // * Read the customXml.json file
     let custom_xml_json_path = format!("{}/{}", root_folder, CUSTOM_XML_FILE_NAME);
     if !Path::new(&custom_xml_json_path).exists() {
@@ -72,7 +72,7 @@ fn sync_custom_xml(root_folder: &str) -> Result<(), &'static str> {
         let file_path = format!("{}/{}", custom_xml_folder, file_name);
 
         // Reconstruct the XML content from the JSON data
-        let xml_content = reconstruct_xml_from_json(&custom_xml_file);
+        let xml_content = reconstruct_xml_from_json(custom_xml_file);
 
         // Write the XML content to the file
         match fs::write(&file_path, xml_content) {
@@ -110,13 +110,13 @@ fn reconstruct_xml_from_json(custom_xml_file: &CustomXmlFile) -> String {
     xml.push_str(tag);
 
     // * Add attributes if they exist
-    if let Some(attrs) = attributes.as_ref() {
-        if let Some(attrs_obj) = attrs.as_object() {
-            for (key, value) in attrs_obj {
-                if let Some(value_str) = value.as_str() {
-                    let attribute_string = format!(" {}=\"{}\"", key, value_str);
-                    xml.push_str(attribute_string.as_str());
-                }
+    if let Some(attrs) = attributes.as_ref()
+        && let Some(attrs_obj) = attrs.as_object()
+    {
+        for (key, value) in attrs_obj {
+            if let Some(value_str) = value.as_str() {
+                let attribute_string = format!(" {}=\"{}\"", key, value_str);
+                xml.push_str(attribute_string.as_str());
             }
         }
     }
