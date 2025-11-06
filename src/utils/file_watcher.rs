@@ -121,6 +121,8 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
                 println!("{}", format!("Watcher error: {}", e).red());
             }
         }
+
+        println!("{}", "Watching for changes...".blue());
     }
 
     Ok(())
