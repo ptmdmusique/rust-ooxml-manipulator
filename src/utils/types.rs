@@ -13,6 +13,8 @@ pub const CUSTOM_XML_FILE_NAME: &str = "customXml.json";
 /// The path to the preference file that store user's last used params
 const PREFERENCE_FILE_PATH: &str = "preference.json";
 
+pub const FIXTURE_FOLDER_PATH: &str = ".local";
+
 // * ---
 /// Info about the file path
 pub struct FilePathInfo {

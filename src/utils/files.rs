@@ -152,4 +152,41 @@ mod tests {
         assert!(!is_image_extension("png.")); // with dot
         assert!(!is_image_extension(".png")); // with leading dot
     }
+
+    #[test]
+    fn test_get_output_folder() {
+        use crate::utils::types::{FIXTURE_FOLDER_PATH, FilePathInfo};
+        use std::env::temp_dir;
+        use std::fs::File;
+        use std::io::Write;
+
+        // Create a temporary file for testing
+        let mut temp_file = temp_dir();
+        temp_file.push(FIXTURE_FOLDER_PATH);
+        temp_file.push("test_document.docx");
+
+        // Create the file
+        let mut file = File::create(&temp_file).expect("Failed to create temp file");
+        file.write_all(b"test content")
+            .expect("Failed to write to temp file");
+        drop(file);
+
+        // Create FilePathInfo from the temp file
+        let file_path_info = FilePathInfo::new(temp_file.to_string_lossy().to_string());
+
+        // Test get_output_folder
+        let zip_folder = get_output_folder(&file_path_info);
+
+        // Verify the structure
+        assert!(zip_folder.root_folder.contains(&file_path_info.file_name));
+        assert!(zip_folder.extracted_folder.contains(EXTRACTED_FOLDER_NAME));
+        assert!(
+            zip_folder
+                .extracted_folder
+                .contains(&zip_folder.root_folder)
+        );
+
+        // Clean up
+        let _ = std::fs::remove_file(&temp_file);
+    }
 }

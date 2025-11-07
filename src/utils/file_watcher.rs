@@ -231,3 +231,86 @@ fn handle_file_change(
 fn normalized_path(path: &Path) -> PathBuf {
     path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::utils::types::FIXTURE_FOLDER_PATH;
+
+    use super::*;
+    use std::env::temp_dir;
+    use std::fs::File;
+    use std::io::Write;
+
+    #[test]
+    fn test_normalized_path_with_existing_file() {
+        // Create a temporary file
+        let mut temp_file = temp_dir();
+        temp_file.push(FIXTURE_FOLDER_PATH);
+        temp_file.push("test_normalize.txt");
+
+        let mut file = File::create(&temp_file).expect("Failed to create temp file");
+        file.write_all(b"test").expect("Failed to write");
+        drop(file);
+
+        // Test normalization of existing file
+        let normalized = normalized_path(&temp_file);
+
+        // Should return a canonicalized path (absolute)
+        assert!(normalized.is_absolute());
+
+        // Clean up
+        let _ = std::fs::remove_file(&temp_file);
+    }
+
+    #[test]
+    fn test_normalized_path_with_nonexistent_file() {
+        // Test with a non-existent path
+        let mut nonexistent_path = temp_dir();
+        nonexistent_path.push(FIXTURE_FOLDER_PATH);
+        nonexistent_path.push("nonexistent/path/file.txt");
+        let normalized = normalized_path(Path::new(&nonexistent_path));
+
+        // Should return the original path as PathBuf when canonicalize fails
+        assert_eq!(normalized, nonexistent_path.to_path_buf());
+    }
+
+    #[test]
+    fn test_normalized_path_with_relative_path() {
+        // Create a temporary file in current directory for relative path test
+        let mut temp_file = temp_dir();
+        temp_file.push(FIXTURE_FOLDER_PATH);
+        temp_file.push("test_normalize_relative.txt");
+        let mut file = File::create(&temp_file).expect("Failed to create temp file");
+        file.write_all(b"test").expect("Failed to write");
+        drop(file);
+
+        // Test with relative path
+        let relative_path = Path::new(&temp_file);
+        let normalized = normalized_path(relative_path);
+
+        // Should return an absolute path when file exists
+        assert!(normalized.is_absolute());
+
+        // Clean up
+        let _ = std::fs::remove_file(&temp_file);
+    }
+
+    #[test]
+    fn test_normalized_path_with_directory() {
+        // Create a temporary directory
+        let mut temp_dir = temp_dir();
+        temp_dir.push(FIXTURE_FOLDER_PATH);
+        temp_dir.push("test_normalize_dir");
+        std::fs::create_dir_all(&temp_dir).expect("Failed to create temp dir");
+
+        // Test normalization of directory
+        let normalized = normalized_path(&temp_dir);
+
+        // Should return a canonicalized path (absolute)
+        assert!(normalized.is_absolute());
+        assert!(normalized.is_dir());
+
+        // Clean up
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+}

@@ -134,3 +134,134 @@ fn reconstruct_xml_from_json(custom_xml_file: &CustomXmlFile) -> String {
 
     xml
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils::analyze_custom_xml::CustomXmlInfo;
+    use crate::utils::types::FileInfo;
+    use serde_json::json;
+
+    #[test]
+    fn test_reconstruct_xml_from_json_basic() {
+        let custom_xml_file = CustomXmlFile {
+            file_info: FileInfo {
+                file_name_with_extension: "item1.xml".to_string(),
+                full_file_path: "test/item1.xml".to_string(),
+                file_size_in_kb: 1.0,
+            },
+            custom_xml_info: CustomXmlInfo {
+                tag: "rootTag".to_string(),
+                attributes: Some(json!({
+                    "attr1": "value1",
+                    "attr2": "value2"
+                })),
+                json_content: json!({"key": "value"}),
+            },
+        };
+
+        let result = reconstruct_xml_from_json(&custom_xml_file);
+
+        assert!(result.starts_with("<rootTag"));
+        assert!(result.contains("attr1=\"value1\""));
+        assert!(result.contains("attr2=\"value2\""));
+        assert!(result.contains("{\"key\":\"value\"}"));
+        assert!(result.ends_with("</rootTag>"));
+    }
+
+    #[test]
+    fn test_reconstruct_xml_from_json_no_attributes() {
+        let custom_xml_file = CustomXmlFile {
+            file_info: FileInfo {
+                file_name_with_extension: "item1.xml".to_string(),
+                full_file_path: "test/item1.xml".to_string(),
+                file_size_in_kb: 1.0,
+            },
+            custom_xml_info: CustomXmlInfo {
+                tag: "simpleTag".to_string(),
+                attributes: None,
+                json_content: json!({"data": 123}),
+            },
+        };
+
+        let result = reconstruct_xml_from_json(&custom_xml_file);
+
+        assert_eq!(result, "<simpleTag>{\"data\":123}</simpleTag>");
+    }
+
+    #[test]
+    fn test_reconstruct_xml_from_json_empty_json_content() {
+        let custom_xml_file = CustomXmlFile {
+            file_info: FileInfo {
+                file_name_with_extension: "item1.xml".to_string(),
+                full_file_path: "test/item1.xml".to_string(),
+                file_size_in_kb: 1.0,
+            },
+            custom_xml_info: CustomXmlInfo {
+                tag: "emptyTag".to_string(),
+                attributes: Some(json!({"id": "123"})),
+                json_content: json!({}),
+            },
+        };
+
+        let result = reconstruct_xml_from_json(&custom_xml_file);
+
+        assert!(result.starts_with("<emptyTag"));
+        assert!(result.contains("id=\"123\""));
+        assert!(result.contains("{}"));
+        assert!(result.ends_with("</emptyTag>"));
+    }
+
+    #[test]
+    fn test_reconstruct_xml_from_json_complex_json() {
+        let custom_xml_file = CustomXmlFile {
+            file_info: FileInfo {
+                file_name_with_extension: "item1.xml".to_string(),
+                full_file_path: "test/item1.xml".to_string(),
+                file_size_in_kb: 1.0,
+            },
+            custom_xml_info: CustomXmlInfo {
+                tag: "dataTag".to_string(),
+                attributes: Some(json!({"version": "1.0"})),
+                json_content: json!({
+                    "nested": {
+                        "key": "value",
+                        "number": 42
+                    },
+                    "array": [1, 2, 3]
+                }),
+            },
+        };
+
+        let result = reconstruct_xml_from_json(&custom_xml_file);
+
+        assert!(result.starts_with("<dataTag"));
+        assert!(result.contains("version=\"1.0\""));
+        assert!(result.contains("nested"));
+        assert!(result.contains("array"));
+        assert!(result.ends_with("</dataTag>"));
+    }
+
+    #[test]
+    fn test_reconstruct_xml_from_json_single_attribute() {
+        let custom_xml_file = CustomXmlFile {
+            file_info: FileInfo {
+                file_name_with_extension: "item1.xml".to_string(),
+                full_file_path: "test/item1.xml".to_string(),
+                file_size_in_kb: 1.0,
+            },
+            custom_xml_info: CustomXmlInfo {
+                tag: "singleAttr".to_string(),
+                attributes: Some(json!({"name": "test"})),
+                json_content: json!("simple string"),
+            },
+        };
+
+        let result = reconstruct_xml_from_json(&custom_xml_file);
+
+        assert!(result.starts_with("<singleAttr"));
+        assert!(result.contains("name=\"test\""));
+        assert!(result.contains("\"simple string\""));
+        assert!(result.ends_with("</singleAttr>"));
+    }
+}
