@@ -99,10 +99,10 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
             EventKind::Modify(_) => {
                 for path in paths {
                     let last_modified = debounce_hashmap.get(&path);
-                    if let Some(last_modified) = last_modified {
-                        if last_modified.elapsed() < Duration::from_millis(200) {
-                            continue;
-                        }
+                    if let Some(last_modified) = last_modified
+                        && last_modified.elapsed() < Duration::from_millis(200)
+                    {
+                        continue;
                     }
 
                     println!(
