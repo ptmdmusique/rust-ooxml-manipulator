@@ -43,6 +43,15 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
         return Err("Extracted folder is not a directory");
     }
 
+    println!("\n{}", "File watcher started. Press Ctrl+C to stop.".blue());
+    println!("{}", "Watching for changes in:".yellow());
+    println!("\t- {} (will trigger resync prompt)", CUSTOM_XML_FILE_NAME);
+    println!(
+        "\t- {} folder (will trigger rezip prompt)",
+        EXTRACTED_FOLDER_NAME
+    );
+    println!();
+
     let custom_xml_json_path = root_path.join(CUSTOM_XML_FILE_NAME);
     if !custom_xml_json_path.is_file() {
         return Err("Custom XML JSON file is not a file");
@@ -66,63 +75,53 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
         .watch(Path::new(root_folder), RecursiveMode::Recursive)
         .unwrap();
 
-    println!("{}", "File watcher started. Press Ctrl+C to stop.".blue());
-    println!("{}", "Watching for changes in:".yellow());
-    println!("\t- {} (will trigger resync prompt)", CUSTOM_XML_FILE_NAME);
-    println!(
-        "\t- {} folder (will trigger rezip prompt)",
-        EXTRACTED_FOLDER_NAME
-    );
-    println!();
+    // ! There is a bug where the same event is fired multiple times - unsure why (yet!)
 
     // * Handle events
     // This will run forever until the program is stopped
     for res in rx {
         match res {
-            Ok(Event {
-                kind: EventKind::Modify(_),
-                paths,
-                ..
-            }) => {
-                for path in paths {
-                    handle_file_change(
-                        &path,
-                        &root_path,
-                        &extracted_folder_path,
-                        &custom_xml_json_path,
-                        &output_file_path,
-                    );
+            Ok(Event { kind, paths, .. }) => {
+                match kind {
+                    EventKind::Modify(_) => {
+                        println!(
+                            "{}",
+                            format!("{} files data modified (kind: {:?}):", paths.len(), kind)
+                                .yellow()
+                        );
+                        for path in paths {
+                            handle_file_change(
+                                &path,
+                                &root_path,
+                                &extracted_folder_path,
+                                &custom_xml_json_path,
+                                &output_file_path,
+                            );
+                        }
+                    }
+                    EventKind::Create(_) => {
+                        println!("{}", format!("{} files created:", paths.len()).yellow());
+                        for path in paths {
+                            println!("\t- {}", path.display());
+                        }
+                    }
+                    EventKind::Remove(_) => {
+                        println!("{}", format!("{} files removed:", paths.len()).yellow());
+                        for path in paths {
+                            println!("\t- {}", path.display());
+                        }
+                    }
+                    _ => {
+                        // ! Other event types are ignored
+                    }
                 }
-            }
-            Ok(Event {
-                kind: EventKind::Create(_),
-                paths,
-                ..
-            }) => {
-                println!("{}", format!("{} files created:", paths.len()).yellow());
-                for path in paths {
-                    println!("\t- {}", path.display());
-                }
-            }
-            Ok(Event {
-                kind: EventKind::Remove(_),
-                paths,
-                ..
-            }) => {
-                println!("{}", format!("{} files removed:", paths.len()).yellow());
-                for path in paths {
-                    println!("\t- {}", path.display());
-                }
-            }
-            Ok(_) => {
-                // ! Other event types are ignored
             }
             Err(e) => {
                 println!("{}", format!("Watcher error: {}", e).red());
             }
         }
 
-        println!("{}", "Watching for changes...".blue());
+        println!("\n{}\n", "Watching for changes...".blue());
     }
 
     Ok(())
@@ -143,10 +142,7 @@ fn handle_file_change(
 
     // * Check if it's the customXml.json file
     if normalized_changed == normalized_custom_xml {
-        println!(
-            "{}",
-            format!("\n{} changed!", CUSTOM_XML_FILE_NAME).yellow()
-        );
+        println!("{}", format!("{} changed!", CUSTOM_XML_FILE_NAME).yellow());
         let response = input!("Do you want to resync? (y/n - default: n): ");
         if response.to_lowercase() == "y" {
             match sync_custom_xml(root_path.to_str().unwrap()) {
@@ -168,7 +164,7 @@ fn handle_file_change(
         println!(
             "{}",
             format!(
-                "\nFile in {} folder changed: {}",
+                "File in {} folder changed: {}",
                 EXTRACTED_FOLDER_NAME,
                 changed_path.display()
             )
@@ -201,7 +197,7 @@ fn handle_file_change(
     println!(
         "{}",
         format!(
-            "\nFile change detected but not supported: {}",
+            "File change detected but not supported: {}",
             changed_path.display()
         )
         .yellow()
