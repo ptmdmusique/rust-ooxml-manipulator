@@ -139,3 +139,4 @@ Beside of that, I also Google
 - Function closure
 - Inheritance when serializing struct to a JSON
 - Parsing string content into a JSON
+- the events got fired multiple times when watching for folder file changes

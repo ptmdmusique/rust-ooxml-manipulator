@@ -8,8 +8,11 @@ use crate::utils::{
 use colored::Colorize;
 use notify::{Event, EventKind, RecursiveMode, Watcher};
 use prompted::input;
-use std::path::{Path, PathBuf};
-use std::sync::mpsc;
+use std::{collections::HashMap, sync::mpsc, time::Duration};
+use std::{
+    path::{Path, PathBuf},
+    time::Instant,
+};
 
 /// Watch for file changes in the root folder
 pub fn watch_folder_wrapper(user_preference: &mut UserPreference) {
@@ -76,52 +79,72 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
         .unwrap();
 
     // ! There is a bug where the same event is fired multiple times - unsure why (yet!)
+    // This hashmap keep track of the last time the user confirmed the action
+    // There might be multiple changes to the same file while we debounce
+    //  but that's ok because our re-save function will automatically take the latest change
+    let mut debounce_hashmap: HashMap<PathBuf, Instant> = HashMap::new();
 
     // * Handle events
     // This will run forever until the program is stopped
     for res in rx {
-        match res {
-            Ok(Event { kind, paths, .. }) => {
-                match kind {
-                    EventKind::Modify(_) => {
-                        println!(
-                            "{}",
-                            format!("{} files data modified (kind: {:?}):", paths.len(), kind)
-                                .yellow()
-                        );
-                        for path in paths {
-                            handle_file_change(
-                                &path,
-                                &root_path,
-                                &extracted_folder_path,
-                                &custom_xml_json_path,
-                                &output_file_path,
-                            );
+        if res.is_err() {
+            println!("{}", format!("Watcher error: {}", res.err().unwrap()).red());
+            continue;
+        }
+
+        let mut did_execute_action = false;
+
+        let Event { kind, paths, .. } = res.unwrap();
+        match kind {
+            EventKind::Modify(_) => {
+                for path in paths {
+                    let last_modified = debounce_hashmap.get(&path);
+                    if let Some(last_modified) = last_modified {
+                        if last_modified.elapsed() < Duration::from_millis(200) {
+                            continue;
                         }
                     }
-                    EventKind::Create(_) => {
-                        println!("{}", format!("{} files created:", paths.len()).yellow());
-                        for path in paths {
-                            println!("\t- {}", path.display());
-                        }
-                    }
-                    EventKind::Remove(_) => {
-                        println!("{}", format!("{} files removed:", paths.len()).yellow());
-                        for path in paths {
-                            println!("\t- {}", path.display());
-                        }
-                    }
-                    _ => {
-                        // ! Other event types are ignored
-                    }
+
+                    println!(
+                        "{}",
+                        format!("{} file data modified (kind: {:?}):", path.display(), kind)
+                            .bright_blue()
+                    );
+
+                    did_execute_action = true;
+
+                    handle_file_change(
+                        &path,
+                        &root_path,
+                        &extracted_folder_path,
+                        &custom_xml_json_path,
+                        &output_file_path,
+                    );
+
+                    debounce_hashmap.insert(path, Instant::now());
                 }
             }
-            Err(e) => {
-                println!("{}", format!("Watcher error: {}", e).red());
+            EventKind::Create(_) => {
+                println!("{}", format!("{} files created:", paths.len()).yellow());
+                for path in paths {
+                    println!("\t- {}", path.display());
+                }
+            }
+            EventKind::Remove(_) => {
+                println!("{}", format!("{} files removed:", paths.len()).yellow());
+                for path in paths {
+                    println!("\t- {}", path.display());
+                }
+            }
+            _ => {
+                // ! Other event types are ignored
+                println!("{}", format!("Unsupported event type: {:?}", kind).yellow());
             }
         }
 
-        println!("\n{}\n", "Watching for changes...".blue());
+        if did_execute_action {
+            println!("\n{}\n", "Watching for changes...".blue());
+        }
     }
 
     Ok(())
