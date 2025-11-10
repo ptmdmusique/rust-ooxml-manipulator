@@ -39,7 +39,7 @@ This section explains the individual features for more info
 
 ### Feature explanation
 
-1. Word file extraction and rezip
+**1. Word file extraction and rezip**
 
 A Word file is a zipped representation of different file types behind the scenes. It includes
 
@@ -51,7 +51,7 @@ A Word file is a zipped representation of different file types behind the scenes
 
 This feature helps unzip the Word file into its mentioned internal structure and also re-zip it
 
-2. Summarize the structure
+**2. Summarize the structure**
 
 This will analyze and summarize the file info, including
 
@@ -63,11 +63,20 @@ Note that this will extract the Word file if it's not found
 
 The result will be stored in `summary.json`
 
-3. Analyze and update customXML
+**3. Analyze and update customXML**
 
 Analyze the `item*.xml` files to get the list of custom XML embedded in the Word file. The result will be stored in `customXml.json`.
 
 We'll also support saving the `customXML` back to the actual xml file
+
+**4. Watch fo file changes**
+
+The main purpose is to watch for the output folder of the `unzip` feature for changes and prompt the user for follow ups.
+
+This uses all the other features.
+For example, if `customXml.json` changes, the program will automatically prompt the user whether they want to update the custom XML in the `extracted` folder. Consequently, it will then prompt whether the user wants to rezip the project folder back to the Word file
+
+One limitation is that this doesn't deeply compared the content of `customXml.json`, meaning ALL the custom xml in the extracted OOXML will be updated instead of just the changed one.
 
 ## How to run
 
@@ -113,6 +122,15 @@ Input the path to the root folder that includes the unzipped Word file (`extract
 - Analyze your `customXml.json` content
 - Iterate over the `customXml` folder inside the `extracted` folder
 - Override the content of individual file correspondingly
+
+**6. Watch for changes**
+
+Input the path of the project folder coming from the `unzip` feature. The program will watch for file change until you terminate it (via `Ctrl+C`).
+
+You can now modify `customXml.json` or any file inside the `extracted` folder. If the you modify:
+
+- `customXml.json`: the program will prompt you whether you want to re-update the custom XMLs inside the `extracted` folder
+- any file inside the `extracted` folder: the program will prompt you whether you want to rezip the project folder back to the Word file
 
 ## Issue and credit
 
