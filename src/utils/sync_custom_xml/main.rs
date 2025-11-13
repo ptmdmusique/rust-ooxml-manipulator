@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 use crate::utils::{
-    analyze_custom_xml::main::CustomXmlFile,
+    analyze_custom_xml::main::{CustomXmlFile, CustomXmlInfo, parse_custom_xml_content_for_tag},
     files::read_struct_from_json,
     input_utils::get_path_from_input::get_extracted_root_folder_path,
     print_utils::{get_error_message, print_error_with_panic, print_fn_progress},
@@ -67,34 +67,82 @@ pub fn sync_custom_xml(root_folder: &str) -> Result<(), &'static str> {
 
     // * Sync each custom XML file
     let mut synced_count = 0;
+    let mut skipped_count = 0;
     for custom_xml_file in &custom_xml_files {
         let file_name = &custom_xml_file.file_info.file_name_with_extension;
         let file_path = format!("{}/{}", custom_xml_folder, file_name);
 
-        // Reconstruct the XML content from the JSON data
-        let xml_content = reconstruct_xml_from_json(custom_xml_file);
+        let should_update = should_update_file(&file_path, &custom_xml_file.custom_xml_info);
+        if should_update {
+            // Reconstruct the XML content from the JSON data
+            let xml_content = reconstruct_xml_from_json(custom_xml_file);
 
-        // Write the XML content to the file
-        match fs::write(&file_path, xml_content) {
-            Ok(_) => {
-                synced_count += 1;
-                println!("Synced: {}", file_name);
+            // Write the XML content to the file
+            match fs::write(&file_path, xml_content) {
+                Ok(_) => {
+                    synced_count += 1;
+                    println!("Synced: {}", file_name);
+                }
+                Err(e) => {
+                    println!(
+                        "{}",
+                        get_error_message(&format!("Failed to write {}: {}", file_name, e))
+                    );
+                }
             }
-            Err(e) => {
-                println!(
-                    "{}",
-                    get_error_message(&format!("Failed to write {}: {}", file_name, e))
-                );
-            }
+        } else {
+            skipped_count += 1;
+            println!("Skipped (unchanged): {}", file_name);
         }
     }
 
     println!(
-        "Successfully synced {} out of {} custom XML files",
+        "Successfully synced {} out of {} custom XML files ({} skipped as unchanged)",
         synced_count,
-        custom_xml_files.len()
+        custom_xml_files.len(),
+        skipped_count
     );
     Ok(())
+}
+
+/// Determine if a file should be updated by comparing the current file content with the expected CustomXmlInfo
+///
+/// Since this is used to determine if the file need to be updated or not, this will return `true` if
+/// * the content is different
+/// * The content cannot be read (bad file, can't parse, non-exist file, etc)
+pub fn should_update_file(file_path: &str, expected_info: &CustomXmlInfo) -> bool {
+    if !Path::new(file_path).exists() {
+        // File doesn't exist, we should create it
+        return true;
+    }
+
+    match fs::read_to_string(file_path) {
+        Ok(current_content) => {
+            // Parse the current XML content
+            match parse_custom_xml_content_for_tag(&current_content) {
+                Ok(current_info) => {
+                    // Compare with the expected version
+                    current_info != *expected_info
+                }
+                Err(error) => {
+                    // If parsing fails, we should update
+                    println!(
+                        "{}",
+                        get_error_message(&format!("Failed to parse {}: {}", file_path, error))
+                    );
+                    true
+                }
+            }
+        }
+        Err(error) => {
+            // If reading fails, we should update
+            println!(
+                "{}",
+                get_error_message(&format!("Failed to read {}: {}", file_path, error))
+            );
+            true
+        }
+    }
 }
 
 /// Reconstruct the XML content from the CustomXmlFile struct
@@ -263,5 +311,194 @@ mod tests {
         assert!(result.contains("name=\"test\""));
         assert!(result.contains("\"simple string\""));
         assert!(result.ends_with("</singleAttr>"));
+    }
+
+    #[test]
+    fn test_should_update_file_when_file_does_not_exist() {
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: None,
+            json_content: json!({"key": "value"}),
+        };
+
+        // Use a non-existent file path
+        let file_path = "/tmp/nonexistent_file_12345.xml";
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(result, "Should return true when file doesn't exist");
+    }
+
+    #[test]
+    fn test_should_update_file_when_content_matches() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: Some(json!({"attr1": "value1"})),
+            json_content: json!({"key": "value"}),
+        };
+
+        // Create a temporary file with matching content
+        let temp_file = NamedTempFile::new().unwrap();
+        let file_path = temp_file.path().to_str().unwrap();
+
+        // Write XML content that matches the expected_info
+        let xml_content = r#"<testTag attr1="value1">{"key":"value"}</testTag>"#;
+        fs::write(file_path, xml_content).unwrap();
+
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(!result, "Should return false when content matches");
+    }
+
+    #[test]
+    fn test_should_update_file_when_content_differs() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: Some(json!({"attr1": "value1"})),
+            json_content: json!({"key": "different_value"}),
+        };
+
+        // Create a temporary file with different content
+        let temp_file = NamedTempFile::new().unwrap();
+        let file_path = temp_file.path().to_str().unwrap();
+
+        // Write XML content that differs from expected_info
+        let xml_content = r#"<testTag attr1="value1">{"key":"value"}</testTag>"#;
+        fs::write(file_path, xml_content).unwrap();
+
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(result, "Should return true when content differs");
+    }
+
+    #[test]
+    fn test_should_update_file_when_tag_differs() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: None,
+            json_content: json!({"key": "value"}),
+        };
+
+        // Create a temporary file with different tag
+        let temp_file = NamedTempFile::new().unwrap();
+        let file_path = temp_file.path().to_str().unwrap();
+
+        // Write XML content with different tag
+        let xml_content = r#"<differentTag>{"key":"value"}</differentTag>"#;
+        fs::write(file_path, xml_content).unwrap();
+
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(result, "Should return true when tag differs");
+    }
+
+    #[test]
+    fn test_should_update_file_when_attributes_differ() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: Some(json!({"attr1": "value1"})),
+            json_content: json!({"key": "value"}),
+        };
+
+        // Create a temporary file with different attributes
+        let temp_file = NamedTempFile::new().unwrap();
+        let file_path = temp_file.path().to_str().unwrap();
+
+        // Write XML content with different attributes
+        let xml_content = r#"<testTag attr1="different_value">{"key":"value"}</testTag>"#;
+        fs::write(file_path, xml_content).unwrap();
+
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(result, "Should return true when attributes differ");
+    }
+
+    #[test]
+    fn test_should_update_file_when_file_is_invalid_xml() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: None,
+            json_content: json!({"key": "value"}),
+        };
+
+        // Create a temporary file with invalid XML
+        let temp_file = NamedTempFile::new().unwrap();
+        let file_path = temp_file.path().to_str().unwrap();
+
+        // Write invalid XML content
+        let xml_content = "This is not valid XML content";
+        fs::write(file_path, xml_content).unwrap();
+
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(result, "Should return true when file contains invalid XML");
+    }
+
+    #[test]
+    fn test_should_update_file_when_attributes_missing_in_file() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: Some(json!({"attr1": "value1"})),
+            json_content: json!({"key": "value"}),
+        };
+
+        // Create a temporary file without attributes
+        let temp_file = NamedTempFile::new().unwrap();
+        let file_path = temp_file.path().to_str().unwrap();
+
+        // Write XML content without attributes
+        let xml_content = r#"<testTag>{"key":"value"}</testTag>"#;
+        fs::write(file_path, xml_content).unwrap();
+
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(
+            result,
+            "Should return true when attributes are missing in file"
+        );
+    }
+
+    #[test]
+    fn test_should_update_file_when_attributes_missing_in_expected() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let expected_info = CustomXmlInfo {
+            tag: "testTag".to_string(),
+            attributes: None,
+            json_content: json!({"key": "value"}),
+        };
+
+        // Create a temporary file with attributes
+        let temp_file = NamedTempFile::new().unwrap();
+        let file_path = temp_file.path().to_str().unwrap();
+
+        // Write XML content with attributes
+        let xml_content = r#"<testTag attr1="value1">{"key":"value"}</testTag>"#;
+        fs::write(file_path, xml_content).unwrap();
+
+        let result = should_update_file(file_path, &expected_info);
+
+        assert!(
+            result,
+            "Should return true when attributes are present in file but not expected"
+        );
     }
 }

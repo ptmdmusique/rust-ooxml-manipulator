@@ -76,7 +76,7 @@ The main purpose is to watch for the output folder of the `unzip` feature for ch
 This uses all the other features.
 For example, if `customXml.json` changes, the program will automatically prompt the user whether they want to update the custom XML in the `extracted` folder. Consequently, it will then prompt whether the user wants to rezip the project folder back to the Word file
 
-One limitation is that this doesn't deeply compared the content of `customXml.json`, meaning ALL the custom xml in the extracted OOXML will be updated instead of just the changed one.
+~~One limitation is that this doesn't deeply compared the content of `customXml.json`, meaning ALL the custom xml in the extracted OOXML will be updated instead of just the changed one.~~ SOLVED!!!
 
 ## How to run
 

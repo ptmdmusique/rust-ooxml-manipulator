@@ -18,7 +18,7 @@ pub struct CustomXmlFile {
     pub custom_xml_info: CustomXmlInfo,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CustomXmlInfo {
     pub tag: String,
     pub attributes: Option<serde_json::Value>,
@@ -127,7 +127,7 @@ fn analyze_custom_xml(
 ///   { jsonKey1:"value1" jsonKey2:"value2" }
 /// </someTag>
 /// And the result will be a json object like { "someTag": { "attribute1": "value1", "attribute2": "value2" } }
-fn parse_custom_xml_content_for_tag(html_content: &str) -> Result<CustomXmlInfo, &'static str> {
+pub fn parse_custom_xml_content_for_tag(html_content: &str) -> Result<CustomXmlInfo, &'static str> {
     let re = Regex::new(r#"(?s)<(\w+)([^>]*)>(.*?)</\1>"#).unwrap();
 
     if let Ok(Some(caps)) = re.captures(html_content) {
