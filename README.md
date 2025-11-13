@@ -136,13 +136,14 @@ You can now modify `customXml.json` or any file inside the `extracted` folder. I
 
 ### Credit
 
-I asked ChatGPT
+I asked AI to
 
 - to understand what the process is for a Word file extraction (spoiler alert, it's exactly the same as a .zip extraction)
 - to help me review my code after getting yelled at by Clippy
 - to give me a good folder structure to split the code into different modules
 - to help me generate various regex
 - to help me generate some unit test cases
+- refactor the features int their own subfolders
 
 Beside of that, I also Google
 
