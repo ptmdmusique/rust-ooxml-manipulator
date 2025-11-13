@@ -107,13 +107,13 @@ pub fn sync_custom_xml(root_folder: &str) -> Result<(), &'static str> {
 
 /// Determine if a file should be updated by comparing the current file content with the expected CustomXmlInfo
 ///
-/// Since this is used to determine if the file need to be updated or not, this will return `true` if
-/// * the content is different
-/// * The content cannot be read (bad file, can't parse, non-exist file, etc)
+/// This only return `true` if the content changed.
+/// If the file is not found or the content can't be parsed, this will return `false` as well as we'll have to also check whether the rel files exist or not
+/// TODO: implement this feature later
 pub fn should_update_file(file_path: &str, expected_info: &CustomXmlInfo) -> bool {
     if !Path::new(file_path).exists() {
-        // File doesn't exist, we should create it
-        return true;
+        println!("{}", format!("File not found: {}", file_path).yellow());
+        return false;
     }
 
     match fs::read_to_string(file_path) {
@@ -130,7 +130,7 @@ pub fn should_update_file(file_path: &str, expected_info: &CustomXmlInfo) -> boo
                         "{}",
                         get_error_message(&format!("Failed to parse {}: {}", file_path, error))
                     );
-                    true
+                    false
                 }
             }
         }
@@ -140,7 +140,7 @@ pub fn should_update_file(file_path: &str, expected_info: &CustomXmlInfo) -> boo
                 "{}",
                 get_error_message(&format!("Failed to read {}: {}", file_path, error))
             );
-            true
+            false
         }
     }
 }
