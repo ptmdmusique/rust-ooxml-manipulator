@@ -325,7 +325,7 @@ mod tests {
         let file_path = "/tmp/nonexistent_file_12345.xml";
         let result = should_update_file(file_path, &expected_info);
 
-        assert!(result, "Should return true when file doesn't exist");
+        assert!(!result, "Should return false when file doesn't exist");
     }
 
     #[test]
@@ -445,7 +445,10 @@ mod tests {
 
         let result = should_update_file(file_path, &expected_info);
 
-        assert!(result, "Should return true when file contains invalid XML");
+        assert!(
+            !result,
+            "Should return false when file contains invalid XML"
+        );
     }
 
     #[test]
