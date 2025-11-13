@@ -166,8 +166,8 @@ fn handle_file_change(
     // * Check if it's the customXml.json file
     if normalized_changed == normalized_custom_xml {
         println!("{}", format!("{} changed!", CUSTOM_XML_FILE_NAME).yellow());
-        let response = input!("Do you want to resync? (y/n - default: n): ");
-        if response.to_lowercase() == "y" {
+        let response = input!("Do you want to resync? (y/n - default: y): ");
+        if response.to_lowercase() != "n" {
             match sync_custom_xml(root_path.to_str().unwrap()) {
                 Ok(_) => {
                     println!("{}", "Resync completed successfully!".green());
@@ -194,8 +194,8 @@ fn handle_file_change(
             .yellow()
         );
 
-        let response = input!("Do you want to rezip? (y/n - default: n): ");
-        if response.to_lowercase() == "y" {
+        let response = input!("Do you want to rezip? (y/n - default: y): ");
+        if response.to_lowercase() != "n" {
             let extracted_folder_path_str = extracted_folder_path.to_string_lossy().to_string();
             println!(
                 "Rezipping from {} to {}...",
