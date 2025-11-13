@@ -1,6 +1,6 @@
 use crate::utils::{
     analyze_custom_xml::analyze_custom_xml_wrapper,
-    file_watcher::watch_folder_wrapper,
+    file_watcher::file_watcher::watch_folder_wrapper,
     summarize::summarize_wrapper,
     sync_custom_xml::sync_custom_xml_wrapper,
     types::UserPreference,
