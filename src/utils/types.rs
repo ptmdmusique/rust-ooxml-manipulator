@@ -169,3 +169,4 @@ impl UserPreference {
         self.save_to_file()
     }
 }
+

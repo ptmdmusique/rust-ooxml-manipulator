@@ -127,3 +127,4 @@ fn summarize(file_path_info: &FilePathInfo) -> Result<(SummarizeData, String), &
         root_folder,
     ))
 }
+

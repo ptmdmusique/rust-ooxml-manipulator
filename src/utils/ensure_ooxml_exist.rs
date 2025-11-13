@@ -5,7 +5,7 @@ use prompted::input;
 use crate::utils::{
     files::get_output_folder,
     types::{FilePathInfo, ZipFolder},
-    zip_utils::extract_zip,
+    zip_utils::main::extract_zip,
 };
 
 pub fn ensure_ooxml_exist(file_path_info: &FilePathInfo) -> Result<(String, String), &'static str> {

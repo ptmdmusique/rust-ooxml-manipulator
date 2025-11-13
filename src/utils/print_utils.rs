@@ -12,3 +12,4 @@ pub fn print_fn_progress(fn_name: &str, message: &str) {
     let fn_name = format!("[{}]", fn_name).blue();
     println!("{} {}", fn_name, message);
 }
+

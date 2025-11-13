@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 use crate::utils::{
-    analyze_custom_xml::CustomXmlFile,
+    analyze_custom_xml::main::CustomXmlFile,
     files::read_struct_from_json,
     input_utils::get_path_from_input::get_extracted_root_folder_path,
     print_utils::{get_error_message, print_error_with_panic, print_fn_progress},
@@ -138,7 +138,7 @@ fn reconstruct_xml_from_json(custom_xml_file: &CustomXmlFile) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::analyze_custom_xml::CustomXmlInfo;
+    use crate::utils::analyze_custom_xml::main::CustomXmlInfo;
     use crate::utils::types::FileInfo;
     use serde_json::json;
 

@@ -1,9 +1,9 @@
 use crate::utils::{
     input_utils::get_path_from_input::get_extracted_root_folder_path,
     print_utils::{print_error_with_panic, print_fn_progress},
-    sync_custom_xml::sync_custom_xml,
+    sync_custom_xml::main::sync_custom_xml,
     types::{CUSTOM_XML_FILE_NAME, EXTRACTED_FOLDER_NAME, UserPreference},
-    zip_utils::rezip_folder,
+    zip_utils::main::rezip_folder,
 };
 use colored::Colorize;
 use notify::{Event, EventKind, RecursiveMode, Watcher};

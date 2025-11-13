@@ -1,10 +1,10 @@
 use crate::utils::{
-    analyze_custom_xml::analyze_custom_xml_wrapper,
-    file_watcher::file_watcher::watch_folder_wrapper,
-    summarize::summarize_wrapper,
-    sync_custom_xml::sync_custom_xml_wrapper,
+    analyze_custom_xml::main::analyze_custom_xml_wrapper,
+    file_watcher::main::watch_folder_wrapper,
+    summarize::main::summarize_wrapper,
+    sync_custom_xml::main::sync_custom_xml_wrapper,
     types::UserPreference,
-    zip_utils::{extract_zip_wrapper, rezip_folder_wrapper},
+    zip_utils::main::{extract_zip_wrapper, rezip_folder_wrapper},
 };
 use prompted::input;
 
