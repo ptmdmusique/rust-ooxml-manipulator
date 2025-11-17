@@ -35,7 +35,7 @@ pub fn extract_zip_wrapper(user_preference: &mut UserPreference) {
 
     print_fn_progress(
         fn_name,
-        "Zip extracted successfully!\n".green().to_string().as_str(),
+        "Zip extraction finished!\n".green().to_string().as_str(),
     );
 }
 
@@ -119,13 +119,7 @@ pub fn rezip_folder_wrapper(user_preference: &mut UserPreference) {
         print_error_with_panic(&e);
     }
 
-    print_fn_progress(
-        fn_name,
-        "Zip file created successfully!"
-            .green()
-            .to_string()
-            .as_str(),
-    );
+    print_fn_progress(fn_name, "Rezipping finished!".green().to_string().as_str());
 }
 
 pub fn rezip_folder(input_folder_path: &str, output_file_path: &str) -> Result<(), String> {

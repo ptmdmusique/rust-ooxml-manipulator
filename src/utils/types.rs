@@ -2,7 +2,6 @@ use crate::utils::{
     files::{read_struct_from_json, write_struct_to_json},
     print_utils::print_error_with_panic,
 };
-use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -78,13 +77,44 @@ impl FilePathInfo {
     }
 
     pub fn print_info(&self) {
-        println!("{}", "File information:".green());
+        use colored::Colorize;
+        println!();
+        println!(
+            "{}",
+            "╔═══════════════════════════════════════════════════════════════════════════╗"
+                .bright_cyan()
+        );
+        println!("{}", format!("║{:^75}║", "File Information").bright_cyan());
+        println!(
+            "{}",
+            "╠═══════════════════════════════════════════════════════════════════════════╣"
+                .bright_cyan()
+        );
 
         let extension = self.file_extension.as_ref().unwrap();
+        let file_size_kb = self.file_size as f64 / 1024.0;
+        let file_size_mb = file_size_kb / 1024.0;
+        let size_display = if file_size_mb >= 1.0 {
+            format!("{:.2} MB", file_size_mb)
+        } else {
+            format!("{:.2} KB", file_size_kb)
+        };
+
         println!(
-            "\tFull path: {}\n\tName: {}\n\tExtension: {}",
-            self.full_file_path, self.file_name, extension
+            "{} {}",
+            "  Full path:".bright_white().bold(),
+            self.full_file_path
         );
+        println!("{} {}", "  Name:".bright_white().bold(), self.file_name);
+        println!("{} {}", "  Extension:".bright_white().bold(), extension);
+        println!("{} {}", "  Size:".bright_white().bold(), size_display);
+
+        println!(
+            "{}",
+            "╚═══════════════════════════════════════════════════════════════════════════╝"
+                .bright_cyan()
+        );
+        println!();
     }
 }
 
@@ -169,4 +199,3 @@ impl UserPreference {
         self.save_to_file()
     }
 }
-

@@ -144,6 +144,7 @@ I asked AI to
 - to help me generate various regex
 - to help me generate some unit test cases
 - refactor the features int their own subfolders
+- help me make the input prompt more beautiful ❇️❇️🌟🌟✨✨
 
 Beside of that, I also Google
 
