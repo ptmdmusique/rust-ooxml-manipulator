@@ -46,19 +46,29 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
         return Err("Extracted folder is not a directory");
     }
 
+    let custom_xml_json_path = root_path.join(CUSTOM_XML_FILE_NAME);
+    let has_custom_xml_file = custom_xml_json_path.is_file();
+    if !has_custom_xml_file {
+        println!(
+            "\n{}",
+            format!(
+                "customXml file {} not found, ignoring...",
+                CUSTOM_XML_FILE_NAME
+            )
+            .yellow()
+        );
+    }
+
     println!("\n{}", "File watcher started. Press Ctrl+C to stop.".blue());
     println!("{}", "Watching for changes in:".yellow());
-    println!("\t- {} (will trigger resync prompt)", CUSTOM_XML_FILE_NAME);
+    if has_custom_xml_file {
+        println!("\t- {} (will trigger resync prompt)", CUSTOM_XML_FILE_NAME);
+    }
     println!(
         "\t- {} folder (will trigger rezip prompt)",
         EXTRACTED_FOLDER_NAME
     );
     println!();
-
-    let custom_xml_json_path = root_path.join(CUSTOM_XML_FILE_NAME);
-    if !custom_xml_json_path.is_file() {
-        return Err("Custom XML JSON file is not a file");
-    }
 
     let file_name = format!("{}.docx", root_path.file_name().unwrap().to_string_lossy());
     let output_file_path = root_path
@@ -228,6 +238,7 @@ fn handle_file_change(
 }
 
 /// Normalize a path for comparison (handle Windows/Unix path differences)
+/// This is used to make sure the changed path is the same as the last used path
 fn normalized_path(path: &Path) -> PathBuf {
     path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
 }

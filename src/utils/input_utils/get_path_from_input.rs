@@ -30,7 +30,7 @@ pub fn get_folder_path_from_input_for_rezip(user_preference: &mut UserPreference
     let last_input_path = user_preference.clone().last_used_extracted_folder_path;
 
     let prompt_text = format!(
-        "{} Enter folder path (contains extracted folder) {} [last used: {}]: ",
+        "{} Enter folder path (typically the extracted folder) {} [last used: {}]: ",
         "┌─".bright_cyan(),
         "─┐".bright_cyan(),
         last_input_path.bright_yellow()
