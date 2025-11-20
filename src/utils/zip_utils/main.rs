@@ -131,6 +131,10 @@ pub fn rezip_folder(input_folder_path: &str, output_file_path: &str) -> Result<(
         ));
     }
 
+    if let Err(validate_error) = validate_rezip_folder(folder_path) {
+        return Err(format!("Invalid rezip folder: {}", validate_error));
+    }
+
     println!(
         "Creating the zip file from {} to {}...",
         input_folder_path, output_file_path
@@ -149,4 +153,25 @@ pub fn rezip_folder(input_folder_path: &str, output_file_path: &str) -> Result<(
             input_folder_path, e
         )),
     }
+}
+
+/// Make sure the folder that the user trying to rezip with is valid
+/// This is quite simple, make sure it's a folder and contains `word` or `excel` folders and the `_rels` folder
+fn validate_rezip_folder(input_folder_path: &Path) -> Result<(), &'static str> {
+    if !input_folder_path.is_dir() {
+        return Err("The extracted folder is not a directory");
+    }
+
+    let word_folder_path = input_folder_path.join("word");
+    let excel_folder_path = input_folder_path.join("excel");
+    if !word_folder_path.is_dir() && !excel_folder_path.is_dir() {
+        return Err("The extracted folder does not contain a word and excel folder");
+    }
+
+    let _rels_folder_path = input_folder_path.join("_rels");
+    if !_rels_folder_path.is_dir() {
+        return Err("The extracted folder does not contain a _rels folder");
+    }
+
+    Ok(())
 }
