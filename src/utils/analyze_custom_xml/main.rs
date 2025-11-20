@@ -26,6 +26,13 @@ pub struct CustomXmlInfo {
 }
 
 /// Analyze the custom XMLs in the extracted folder
+/// Note that this will only support custom XMLs in this format
+/// <someTag attribute1="value1" attribute2="value2">
+///   { jsonKey1:"value1" jsonKey2:"value2" }
+/// </someTag>
+/// And the result will be a json object like { "someTag": { "attribute1": "value1", "attribute2": "value2" } }
+///
+/// This doesn't support nested tags or multiple tags in the same file.
 pub fn analyze_custom_xml_wrapper(user_preference: &mut UserPreference) {
     println!("\n");
     let fn_name = "Analyze customXML";
@@ -50,8 +57,14 @@ pub fn analyze_custom_xml_wrapper(user_preference: &mut UserPreference) {
         ));
     }
 
-    println!("Custom XML info file: {}", output_path);
-    println!("{}", "Analyzing customXML completed successfully!".green());
+    println!("Custom XML info file written at path: {}", output_path);
+    print_fn_progress(
+        fn_name,
+        "Analyzing customXML completed successfully!"
+            .green()
+            .to_string()
+            .as_str(),
+    );
 }
 
 fn analyze_custom_xml(
@@ -60,6 +73,9 @@ fn analyze_custom_xml(
     let (extracted_folder, root_folder) = ensure_ooxml_exist(file_path_info)?;
 
     let mut custom_xml_files: Vec<CustomXmlFile> = Vec::new();
+
+    let mut parsed_file_count = 0;
+    let mut total_file_count = 0;
 
     // Visit the extracted folder and read the custom XML files
     let output_path = Path::new(&extracted_folder);
@@ -75,6 +91,8 @@ fn analyze_custom_xml(
         } = FilePathInfo::new(path.to_string_lossy().to_string());
 
         if is_file_custom_xml(&file_name) {
+            total_file_count += 1;
+
             // Read the content of the custom XML file as a string
             let content = read_to_string(&path);
             if content.is_err() {
@@ -106,9 +124,18 @@ fn analyze_custom_xml(
                         },
                         custom_xml_info,
                     });
+
+                    parsed_file_count += 1;
+                    println!(
+                        "{}",
+                        format!("Parsed custom XML content for file: {}", file_name).green()
+                    );
                 }
-                Err(e) => {
-                    println!("{}", get_error_message(e));
+                Err(_) => {
+                    println!(
+                        "{}",
+                        format!("Unsupported custom XML content for file: {}", file_name).yellow()
+                    );
                 }
             }
         }
@@ -116,6 +143,15 @@ fn analyze_custom_xml(
 
     if visit_result.is_err() {
         return Err("Failed to visit the directory");
+    } else {
+        println!(
+            "\n{}\n",
+            format!(
+                "Parsed {} custom XML files out of {} total files",
+                parsed_file_count, total_file_count
+            )
+            .green()
+        );
     }
 
     Ok((custom_xml_files, root_folder))
@@ -137,13 +173,17 @@ pub fn parse_custom_xml_content_for_tag(html_content: &str) -> Result<CustomXmlI
         let attributes = parse_attributes(attributes_as_string)?;
 
         let json_content_as_string = caps.get(3).unwrap().as_str();
-        let json_content: serde_json::Value = serde_json::from_str(json_content_as_string).unwrap();
 
-        return Ok(CustomXmlInfo {
-            tag: tag.to_string(),
-            attributes,
-            json_content,
-        });
+        match serde_json::from_str(json_content_as_string) {
+            Ok(json_content) => {
+                return Ok(CustomXmlInfo {
+                    tag: tag.to_string(),
+                    attributes,
+                    json_content,
+                });
+            }
+            Err(_) => return Err("Unsupported custom XML content"),
+        }
     }
 
     Err("Failed to find the custom XML content")
@@ -231,6 +271,13 @@ mod tests {
     #[test]
     fn test_parse_custom_xml_content_for_tag_err_on_mismatch() {
         let content = r#"<someTag>{\"jsonKey1\":\"value1\"}"#; // missing closing tag
+        let result = parse_custom_xml_content_for_tag(content);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_custom_xml_content_for_tag_err_on_unsupported_content() {
+        let content = r#"<someTag><moreTag></moreTag></someTag>"#; // invalid JSON
         let result = parse_custom_xml_content_for_tag(content);
         assert!(result.is_err());
     }
