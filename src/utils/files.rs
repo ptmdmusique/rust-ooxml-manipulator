@@ -28,7 +28,7 @@ pub fn get_output_folder(file_path_info: &FilePathInfo) -> ZipFolder {
     }
 }
 
-/// https://doc.rust-lang.org/nightly/std/fs/fn.read_dir.html#examples
+/// <https://doc.rust-lang.org/nightly/std/fs/fn.read_dir.html#examples>
 pub fn visit_dirs(dir: &Path, file_callback: &mut dyn FnMut(&DirEntry)) -> io::Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
@@ -57,8 +57,8 @@ pub fn write_struct_to_json<T: Serialize>(data: &T, file_path: &str) -> Result<(
     fs::write(file_path, json)
 }
 
+/// <https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example>
 pub fn read_struct_from_json<T: DeserializeOwned>(file_path: &str) -> Result<T, Box<dyn Error>> {
-    // https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
 
