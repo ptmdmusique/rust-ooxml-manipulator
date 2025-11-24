@@ -1,162 +1,277 @@
 # OOXML Manipulator
 
+A Rust program that extracts Word files into their [OOXML](https://en.wikipedia.org/wiki/Office_Open_XML) representation and provides utilities for analyzing and editing the internal structure.
+
+## Table of Contents
+
+- [OOXML Manipulator](#ooxml-manipulator)
+  - [Table of Contents](#table-of-contents)
+  - [Summary](#summary)
+  - [Features](#features)
+  - [Motivation](#motivation)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Quick Start](#quick-start)
+    - [Feature Guide](#feature-guide)
+      - [1. Word File Extraction](#1-word-file-extraction)
+      - [2. Re-zip Extracted Folder](#2-re-zip-extracted-folder)
+      - [3. Summarize Structure](#3-summarize-structure)
+      - [4. Analyze Custom XML](#4-analyze-custom-xml)
+      - [5. Edit Custom XML](#5-edit-custom-xml)
+      - [6. Watch for Changes](#6-watch-for-changes)
+  - [Feature Details](#feature-details)
+    - [Word File Structure](#word-file-structure)
+    - [User Flow](#user-flow)
+  - [Project Structure](#project-structure)
+  - [Known Issues](#known-issues)
+  - [Credits](#credits)
+    - [AI Assistance](#ai-assistance)
+    - [Research](#research)
+  - [License](#license)
+
 ## Summary
 
 **Author**: Duc Phan
 
 **Description**
 
-A program that extracts a Word file into its [OOXML](https://en.wikipedia.org/wiki/Office_Open_XML) representation and also provides some utils
+A command-line tool that extracts Word (`.docx`) files into their OOXML representation, allowing you to explore and edit the internal structure of Word documents programmatically. This is particularly useful for understanding and fixing issues that aren't visible through the Word UI.
 
-The major features of this program include
+The extraction approach is inspired by this [VSCode Extension](https://marketplace.visualstudio.com/items?itemName=yuenm18.ooxml-viewer).
 
-- extract a Word file into a new folder containing its OOXML representation
-- summarize the structure: how many files, how many images, how many custom XML, etc
-- re-zip into the original Word file after the user has modified the file
-- allow adding/editing custom XMLs via a primitive GUI
+## Features
 
-**Stretched goals**: might not be included to ensure I meet the deadline
+The major features of this program include:
 
-- watch for the OOXML changes to update the actual Word file live
-- validate OOXML structure
+- ✅ **Extract Word files** into a new folder containing their OOXML representation
+- ✅ **Summarize structure**: Analyze file count, images, custom XML, and other metadata
+- ✅ **Re-zip modified files** back into the original Word file format
+- ✅ **Edit custom XMLs** via JSON interface
+- ✅ **File watcher** for live updates when files change
+- ✅ **Watch for OOXML changes** to update the actual Word file live
 
-The extraction is inspired by this [VSCode Extension](https://marketplace.visualstudio.com/items?itemName=yuenm18.ooxml-viewer)
+**Future Goals** (may not be included to ensure deadline):
+
+- ⏳ Validate OOXML structure
 
 ## Motivation
 
-I work with Word files daily where we inject content from different sources into Word files.
-One of the pain points is the lack of tools to explore and edit the internal structure of those file to understand the output better as well as well as fixing bugs that are not visible through the Word UI.
+I work with Word files daily where we inject content from different sources into Word files. One of the pain points is the lack of tools to explore and edit the internal structure of those files to understand the output better, as well as fixing bugs that are not visible through the Word UI.
 
-So this project is going to be the starting point for the tools that will be used in my work.
+This project serves as the starting point for tools that will be used in my work.
 
-## Context
+## Prerequisites
 
-This section explains the individual features for more info
+- **Rust** (latest stable version recommended)
+  - Install from [rustup.rs](https://rust-lang.org/tools/install/)
+  - Verify installation: `rustc --version`
 
-### User flow
+## Installation
+
+1. Clone or download this repository
+2. Navigate to the project directory
+3. Run the program:
+   ```bash
+   cargo run
+   ```
+
+## Usage
+
+### Quick Start
+
+1. Navigate to the project folder in your terminal
+2. Run `cargo run`
+3. Choose one of the available options from the menu
+4. Follow the prompts
+
+> **Note**: For file paths, use paths relative to the root of the project. For example, if you have a `.local/test file.docx` at the root, your input path will be exactly `.local/test file.docx` (no quotes needed).
+
+### Feature Guide
+
+#### 1. Word File Extraction
+
+Extract a Word file into its OOXML structure.
+
+**Input**: Relative path to the Word file (e.g., `.local/document.docx`)
+
+**Output**: A folder with the same name (minus extension) containing:
+
+- `extracted/` - The unzipped OOXML structure
+
+**Example**:
+
+```
+Input: .local/my-document.docx
+Output: .local/my-document/extracted/
+```
+
+#### 2. Re-zip Extracted Folder
+
+Re-zip a modified extracted folder back into a Word file.
+
+**Input**:
+
+- Path to the extracted folder
+- Output file name
+
+**Output**: A `.docx` file ready to be opened in Word
+
+**Note**: The output file should match the original format before extraction.
+
+#### 3. Summarize Structure
+
+Analyze and summarize the Word file structure.
+
+**Input**: Path to the source Word file
+
+**Process**:
+
+- Unzips the file if needed
+- Analyzes the extracted folder
+- Generates a summary report
+
+**Output**: `summary.json` inside the root of the unzipped Word folder
+
+**Summary includes**:
+
+- Basic file info: name, size, number of entries, metadata
+- Image count and sizes
+- Number of custom XMLs
+- Other structural information
+
+#### 4. Analyze Custom XML
+
+Extract and analyze custom XML metadata from Word files.
+
+**Input**: Path to the source Word file
+
+**Process**:
+
+- Unzips the file if needed
+- Iterates over the `customXml` folder inside the extracted folder
+- Parses `item*.xml` files
+
+**Output**: `customXml.json` inside the root of the unzipped Word folder
+
+**Format**: JSON representation of custom XML tags, attributes, and content
+
+#### 5. Edit Custom XML
+
+Sync edited custom XML back to the Word file structure.
+
+**Prerequisites**:
+
+- Custom XML must have been analyzed first (feature #4)
+- `customXml.json` must exist in the root folder
+
+**Input**: Path to the root folder containing:
+
+- The `extracted` folder (unzipped Word file)
+- The `customXml.json` file
+
+**Process**:
+
+- Reads and parses `customXml.json`
+- Iterates over the `customXml` folder inside the `extracted` folder
+- Updates individual XML files correspondingly
+
+**Note**: Only changed custom XML files are updated (not all files).
+
+#### 6. Watch for Changes
+
+Monitor file changes and prompt for automatic updates.
+
+**Input**: Path to the project folder (from the unzip feature)
+
+**Behavior**:
+
+- Watches for file changes until terminated (Ctrl+C)
+- Monitors:
+  - `customXml.json` changes → prompts to resync custom XML
+  - Files in `extracted` folder → prompts to rezip back to Word file
+
+**Example Workflow**:
+
+1. Start the watcher on your extracted folder
+2. Edit `customXml.json` in your editor
+3. Program detects change and prompts: "Do you want to resync? (y/n)"
+4. If yes, updates the XML files in `extracted` folder
+5. Edit a file in `extracted` folder
+6. Program detects change and prompts: "Do you want to rezip? (y/n)"
+7. If yes, creates the updated `.docx` file
+
+## Feature Details
+
+### Word File Structure
+
+A Word file (`.docx`) is essentially a ZIP archive containing:
+
+- **`document.xml`** - The main OOXML representing the actual UI shown in Word
+- **Relationship files** - Indicate structural relationships between UI elements
+- **Images** - Embedded images and media
+- **Custom metadata (`customXML`)** - Programmatically added metadata (found via `item1.xml`, `itemProps1.xml`, `item2.xml`, etc.)
+- **Other metadata** - Styles, themes, settings, etc.
+
+This tool helps you unzip, explore, edit, and re-zip this structure.
+
+### User Flow
 
 ![User flow](./user-flow.png)
 
-### Feature explanation
+## Project Structure
 
-**1. Word file extraction and rezip**
+```
+final-project/
+├── src/
+│   ├── main.rs                 # Entry point
+│   └── utils/
+│       ├── analyze_custom_xml/ # Custom XML analysis
+│       ├── file_watcher/       # File change monitoring
+│       ├── files.rs            # File utilities
+│       ├── input_utils/        # User input handling
+│       ├── print_utils.rs      # Output formatting
+│       ├── summarize/          # Structure summarization
+│       ├── sync_custom_xml/    # Custom XML synchronization
+│       ├── types.rs            # Type definitions
+│       └── zip_utils/          # ZIP extraction/compression
+├── Cargo.toml                  # Project dependencies
+├── preference.json             # User preferences (auto-generated)
+└── README.md                   # This file
+```
 
-A Word file is a zipped representation of different file types behind the scenes. It includes
+## Known Issues
 
-- the main OOXML in `document.xml` representing the actual UI shown
-- relationship files indicating the structural relationship between each UI element in Word
-- images
-- custom metadata (`customXML`) made by the users (most likely coders) programmatically (found via `item1.xml`, `itemProps1.xml`, `item2.xml`, etc)
-- etc
+- Function closure challenges
+- Inheritance when serializing structs to JSON
+- Parsing string content into JSON
+- File watcher may fire multiple events for the same file change (debouncing implemented to mitigate this)
 
-This feature helps unzip the Word file into its mentioned internal structure and also re-zip it
+## Credits
 
-**2. Summarize the structure**
+### AI Assistance
 
-This will analyze and summarize the file info, including
+I used AI to help with:
 
-- basic file info: name, size, number of entries, other metadata
-- image count, size of each, etc
-- number of custom XMLs
+- Understanding Word file extraction process (spoiler: it's exactly the same as `.zip` extraction)
+- Code review after Clippy suggestions
+- Folder structure organization for splitting code into modules
+- Generating various regex patterns
+- Generating unit test cases
+- Refactoring features into their own subfolders
+- Making input prompts more beautiful ❇️❇️🌟🌟✨✨
+- Refind this readme ❇️❇️🌟🌟✨✨
 
-Note that this will extract the Word file if it's not found
+### Research
 
-The result will be stored in `summary.json`
+I also researched:
 
-**3. Analyze and update customXML**
+- How to unzip files in Rust
+- How to `readdir` in Rust
+- How to serialize JSON and write to files in Rust
+- How to use Regex in Rust
+- How to watch for file changes in Rust
 
-Analyze the `item*.xml` files to get the list of custom XML embedded in the Word file. The result will be stored in `customXml.json`.
+## License
 
-We'll also support saving the `customXML` back to the actual xml file
-
-**4. Watch fo file changes**
-
-The main purpose is to watch for the output folder of the `unzip` feature for changes and prompt the user for follow ups.
-
-This uses all the other features.
-For example, if `customXml.json` changes, the program will automatically prompt the user whether they want to update the custom XML in the `extracted` folder. Consequently, it will then prompt whether the user wants to rezip the project folder back to the Word file
-
-~~One limitation is that this doesn't deeply compared the content of `customXml.json`, meaning ALL the custom xml in the extracted OOXML will be updated instead of just the changed one.~~ SOLVED!!!
-
-## How to run
-
-- Navigate your favorite terminal to the project folder
-- Run `cargo run`
-- Choose one of the options
-- See below for instruction on individual options
-
-> Note that for file paths, use the path that is relative to the root of the project. For example, I have a `.local/test file.docx` at the root, my input path will be exactly the same, no quote needed
-
-**1. Word unzipping**
-
-Simply input the relative path to the Word file, the program will unzip the file into a folder with the same name (minus the extension) next to the source file
-
-**2. unzipped Word zipping**
-
-Input the folder to the extracted folder and the output file name, the program will handle the rest
-
-The output file should be the same as before it was unzipped.
-
-**3. Summarize the structure**
-
-Input the path to the source Word file, the program will
-
-- Unzip the file if needed
-- Summarize the extracted folder
-- Save the result into `summary.json` inside the root of the unzipped Word folder
-
-**4. Analyze customXML**
-
-Input the path to the source Word file, the program will
-
-- Unzip the file if needed
-- Iterate over the `customXml` folder inside extracted folder
-- Save the result into `customXml.json` inside the root of the unzipped Word folder
-
-**5. Edit customXML**
-
-Once the customXML is analyzed, you can freely edit the `customXml.json`. Once done, you can run the program to resync it.
-
-Input the path to the root folder that includes the unzipped Word file (`extracted` folder) and the `customXml.json` file. The program will
-
-- Analyze your `customXml.json` content
-- Iterate over the `customXml` folder inside the `extracted` folder
-- Override the content of individual file correspondingly
-
-**6. Watch for changes**
-
-Input the path of the project folder coming from the `unzip` feature. The program will watch for file change until you terminate it (via `Ctrl+C`).
-
-You can now modify `customXml.json` or any file inside the `extracted` folder. If the you modify:
-
-- `customXml.json`: the program will prompt you whether you want to re-update the custom XMLs inside the `extracted` folder
-- any file inside the `extracted` folder: the program will prompt you whether you want to rezip the project folder back to the Word file
-
-## Issue and credit
-
-### Credit
-
-I asked AI to
-
-- to understand what the process is for a Word file extraction (spoiler alert, it's exactly the same as a .zip extraction)
-- to help me review my code after getting yelled at by Clippy
-- to give me a good folder structure to split the code into different modules
-- to help me generate various regex
-- to help me generate some unit test cases
-- refactor the features int their own subfolders
-- help me make the input prompt more beautiful ❇️❇️🌟🌟✨✨
-
-Beside of that, I also Google
-
-- how to unzip in Rust
-- how to `readdir` in Rust
-- how to serialize JSON and write it to file in Rust
-- how to use Regex
-- how to watch for file change
-
-### Issue
-
-- Function closure
-- Inheritance when serializing struct to a JSON
-- Parsing string content into a JSON
-- the events got fired multiple times when watching for folder file changes
+This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.

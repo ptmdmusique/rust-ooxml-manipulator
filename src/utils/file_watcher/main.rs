@@ -43,7 +43,7 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
 
     let extracted_folder_path = root_path.join(EXTRACTED_FOLDER_NAME);
     if !extracted_folder_path.is_dir() {
-        return Err("Extracted folder is not a directory");
+        return Err("Missing extracted folder");
     }
 
     let custom_xml_json_path = root_path.join(CUSTOM_XML_FILE_NAME);
@@ -82,11 +82,12 @@ fn watch_folder(root_folder: &str) -> Result<(), &'static str> {
     // https://docs.rs/notify/latest/notify/index.html#examples
     let (tx, rx) = mpsc::channel();
     // Create a watcher with recommended backend to make sure it works on all platforms
-    let mut watcher = notify::recommended_watcher(tx).unwrap();
+    let mut watcher =
+        notify::recommended_watcher(tx).map_err(|_| "Failed to create file watcher")?;
     // Watch the root folder recursively
     watcher
         .watch(Path::new(root_folder), RecursiveMode::Recursive)
-        .unwrap();
+        .map_err(|_| "Failed to start watching the root folder")?;
 
     // ! There is a bug where the same event is fired multiple times - unsure why (yet!)
     // This hashmap keep track of the last time the user confirmed the action
