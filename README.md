@@ -20,6 +20,10 @@ A Rust program that extracts Word files into their [OOXML](https://en.wikipedia.
       - [4. Analyze Custom XML](#4-analyze-custom-xml)
       - [5. Edit Custom XML](#5-edit-custom-xml)
       - [6. Watch for Changes](#6-watch-for-changes)
+  - [Sample Data](#sample-data)
+    - [Available Sample Files](#available-sample-files)
+    - [Testing Custom XML Features](#testing-custom-xml-features)
+    - [Quick Test Workflow](#quick-test-workflow)
   - [Feature Details](#feature-details)
     - [Word File Structure](#word-file-structure)
     - [User Flow](#user-flow)
@@ -201,6 +205,80 @@ Monitor file changes and prompt for automatic updates.
 6. Program detects change and prompts: "Do you want to rezip? (y/n)"
 7. If yes, creates the updated `.docx` file
 
+## Sample Data
+
+The project includes sample Word files in the `sample_data/` directory to help with testing and evaluation. These files are particularly useful for testing custom XML functionality, which can be difficult to test without proper sample files.
+
+### Available Sample Files
+
+The `sample_data/` directory contains the following test files:
+
+- **`normal.docx`** - A standard Word document without custom XML or special features
+
+  - Use for: Basic extraction, summarization, and re-zipping tests
+
+- **`sample_with_custom_xml.docx`** - A Word document containing custom XML metadata
+
+  - Use for: Testing custom XML analysis (feature #4) and editing (feature #5)
+  - Contains: Multiple custom XML items with various structures
+
+- **`sample_with_pictures.docx`** - A Word document with embedded images
+
+  - Use for: Testing image extraction and media handling in summarization
+
+- **`sample_with_custom_xml_and_pictures.docx`** - A Word document with both custom XML and images
+  - Use for: Comprehensive testing of all features together
+  - Contains: Custom XML metadata and embedded images
+
+### Testing Custom XML Features
+
+Custom XML functionality can be challenging to test without proper sample files. The sample files provided make it easier to:
+
+1. **Test Custom XML Analysis**:
+
+   ```
+   Input: sample_data/sample_with_custom_xml.docx
+   Output: sample_data/sample_with_custom_xml/customXml.json
+   ```
+
+   This will generate a JSON file containing all custom XML data, making it easy to verify the analysis works correctly.
+
+2. **Test Custom XML Editing**:
+
+   - First, analyze the custom XML (feature #4)
+   - Edit the generated `customXml.json` file
+   - Use feature #5 to sync changes back to the Word file
+   - Re-zip the file (feature #2) to create an updated `.docx`
+
+3. **Test File Watcher**:
+   - Extract a sample file with custom XML
+   - Start the file watcher (feature #6) on the extracted folder
+   - Edit `customXml.json` to see live sync in action
+
+### Quick Test Workflow
+
+Here's a recommended workflow for testing with sample data:
+
+```bash
+# 1. Extract a sample file with custom XML
+Input: sample_data/sample_with_custom_xml.docx
+
+# 2. Analyze the custom XML
+Input: sample_data/sample_with_custom_xml.docx
+Output: sample_data/sample_with_custom_xml/customXml.json
+
+# 3. (Optional) Edit customXml.json in your editor
+
+# 4. Sync custom XML changes back
+Input: sample_data/sample_with_custom_xml/
+
+# 5. Re-zip the modified folder
+Input: sample_data/sample_with_custom_xml/extracted
+Output: sample_data/sample_with_custom_xml_modified.docx
+```
+
+These sample files are especially helpful for grading and evaluation, as they provide a consistent baseline for testing all features, particularly the custom XML analysis and editing capabilities.
+
 ## Feature Details
 
 ### Word File Structure
@@ -261,6 +339,7 @@ I used AI to help with:
 - Refactoring features into their own subfolders
 - Making input prompts more beautiful ❇️❇️🌟🌟✨✨
 - Refind this readme ❇️❇️🌟🌟✨✨
+- Randomize custom XML data 🐕🐶🦮🐕‍🦺🐩🦴🌭
 
 ### Research
 
