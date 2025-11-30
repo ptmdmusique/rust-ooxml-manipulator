@@ -74,6 +74,8 @@ pub fn get_file_size_in_kb_from_bytes(file_size: u64) -> f64 {
 /// Check whether the given file name is a custom XML file
 /// An example of a custom XML file is `item1.xml`
 /// This will not return `true` for `itemProps1.xml`
+/// ! Note that there is a case where `item.xml` is a custom XML file for Office Desktop
+/// but we don't support that right now as it's a rare case
 pub fn is_file_custom_xml(file_name: &str) -> bool {
     let pattern = r"^item\d+\.xml$";
     let re = Regex::new(pattern).unwrap();
